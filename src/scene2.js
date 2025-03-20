@@ -5,7 +5,7 @@ import { default as icosphere } from 'icosphere'
 import { default as sphere } from 'primitive-sphere'
 import normals from 'angle-normals'
 import mc from 'mouse-change'
-const teapot = icosphere(5)
+const teapot = icosphere(4)
 const background = sphere(20, { segments: 32 })
 console.log(background)
 const mouse = mc()
@@ -141,11 +141,20 @@ const drawTeapot = regl({
     eye: regl.context('eye'),
     tint: regl.prop('tint'),
     envMap: teapotFBO,
-    model: (context, { position }) => mat4.translate([], mat4.identity([]), position),    
+    model: (context, { position }) => mat4.translate([], mat4.identity([]), position),
   }
 })
 
 const drawGround = regl({
+  cull: {
+    enable: true,
+    face: 'front', // Or 'front' if needed
+  },
+  depth: {
+    enable: true,
+    mask: true,
+    func: 'less'
+  },
   frag:
 /*glsl*/`
 precision highp float;
@@ -163,6 +172,12 @@ uniform float iTime;
 
 void main () 
 {
+
+  //   vec2 ptile = step(0.5, fract(uv));
+  // gl_FragColor = vec4(abs(ptile.x - ptile.y) * vec3(1, 1, 1), 1);
+  // gl_FragColor = vec4(1., 0., 0., 1.);
+
+
 	float time = iTime * .5+23.0;
     // uv should be the 0-1 uv of texture...    
 #ifdef SHOW_TILING
@@ -200,21 +215,27 @@ void main ()
 
   vert: /*glsl*/`
   precision highp float;
-  uniform mat4 projection, view;
+  uniform mat4 projection, view, model;
   uniform float height, tileSize;
   attribute vec3 p;
   attribute vec2 uvs;
   varying vec2 uv;
+  varying vec3 eyeDir;
+  
   void main () {
     uv = uvs;
-    gl_Position = projection * view * vec4(p, 1);
+    vec4 worldPos = model * vec4(p, 1);
+    gl_Position = projection * view * worldPos;
   }
   `,
 
+  // primitive: 'triangles',
+
   attributes: {
     p: background.positions,
-    normal: normals(background.cells, background.positions),
+    normal: background.normals,
     uvs: background.uvs,
+    // indices: background.cells
   },
 
   uniforms: {
@@ -222,16 +243,16 @@ void main ()
     view: regl.context('view'),
     tileSize: regl.prop('tiles'),
     height: regl.prop('height'),
-    iTime: ({tick}) => 0.01 * tick
-
+    iTime: ({ tick }) => 0.01 * tick,
+    model: (context, props) => mat4.translate([], mat4.identity([]), props.position),
   },
 
-  count: background.positions.length
+  elements: background.cells
 })
 
 regl.frame(({ tick, drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
   const t = 0.01 * tick
-  const teapotPos = [0, 3, 0]
+  const teapotPos = [0, 0, 0]
 
   // render teapot cube map
   setupCube({
@@ -244,7 +265,8 @@ regl.frame(({ tick, drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
     })
     drawGround({
       height: GROUND_HEIGHT,
-      tiles: GROUND_TILES
+      tiles: GROUND_TILES,
+      position: [0, 0, 0]
     })
   })
 
@@ -263,7 +285,8 @@ regl.frame(({ tick, drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
     })
     drawGround({
       height: GROUND_HEIGHT,
-      tiles: GROUND_TILES
+      tiles: GROUND_TILES,
+      position: [0, 0, 0]
     })
     drawTeapot({
       tint: TEAPOT_TINT,
