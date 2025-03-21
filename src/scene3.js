@@ -20,8 +20,6 @@ const mouse = mc()
 const regl = initRegl()
 const CUBE_MAP_SIZE = 512
 
-const TEAPOT_TINT = [1, 1, 1]
-
 const sphereFBO = regl.framebufferCube(CUBE_MAP_SIZE)
 
 const CUBEMAP_SIDES = [
@@ -78,7 +76,7 @@ const cameraProps = {
   fov: Math.PI / 4.0,
   projectionMatrix: new Float32Array(16),
   viewMatrix: new Float32Array(16),
-  cameraPosition: [0, 0, 0], 
+  cameraPosition: [0, 0, 0],
 }
 
 const setupCamera = regl({
@@ -99,6 +97,8 @@ const setupCamera = regl({
     cameraPosition: regl.prop('cameraPosition')
   }
 }).bind(cameraProps)
+
+
 
 const drawSphere = regl({
   vert: sphereVert,
@@ -129,13 +129,26 @@ const drawSphere = regl({
       return normalMatrix
     },
     cameraPosition: regl.context('cameraPosition'),
-    envMap: sphereFBO,
+    envMap: regl.prop('envMap'),
     reflectionRoughness: 0.5,
     refractionRoughness: 0.1,
     refractiveIndex: 1.33,
     iTime: ({ tick }) => tick,
+    instanceIndex: regl.prop('instanceIndex'),
   }
 })
+
+const spherePositions = [
+  [2, -5, 0],
+  [-12, 6, 0],
+  [12, 0, 0],
+]
+
+const sphereInstances = spherePositions.map((position, index) => ({
+  position,
+  fbo: regl.framebufferCube(CUBE_MAP_SIZE),
+  instanceIndex: index,
+}))
 
 resl({
   manifest: {
@@ -179,21 +192,14 @@ resl({
 
     })
     regl.frame(({ drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
-      const spherePos = [0, 0, 0]
 
       // render sphere cube map
-      setupCube({
-        fbo: sphereFBO,
-        center: spherePos
-      }, () => {
-        regl.clear({
-          color: [0.2, 0.2, 0.2, 1],
-          depth: 1
+      for (const instance of sphereInstances) {
+        setupCube({ fbo: instance.fbo, center: instance.position }, () => {
+          regl.clear({ color: [0.2, 0.2, 0.2, 1], depth: 1 })
+          drawBackground({ position: [0, 0, 0] })
         })
-        drawBackground({
-          position: [0, 0, 0]
-        })
-      })
+      }
 
       const theta = 2.0 * Math.PI * (pixelRatio * mouse.x / drawingBufferWidth - 0.5)
       setupCamera({
@@ -203,7 +209,7 @@ resl({
           -17
         ],
         target: [0, 0, 0]
-      }, ({  tick }) => {
+      }, ({ tick }) => {
         regl.clear({
           color: [1, 1, 1, 1],
           depth: 1
@@ -211,9 +217,14 @@ resl({
         drawBackground({
           position: [0, 0, 0]
         })
-        drawSphere({
-          position: spherePos,
-        })
+        drawSphere(sphereInstances.map((instance, instanceIndex) => {
+          const y = Math.sin(tick * 0.001 + instanceIndex * 400) * 10
+          return ({
+            position: [instance.position[0], y, instance.position[2]],
+            envMap: instance.fbo,
+            instanceIndex
+          })
+        }))
       })
     })
   },

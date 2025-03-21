@@ -15,11 +15,11 @@ varying vec3 vWorldNormal;
 varying vec3 vViewDir;
 varying vec3 vWorldPos;
 uniform float iTime;
-
+uniform float instanceIndex;
 
 void main() {
     vec3 seed = aPosition * 0.1;
-    seed.z += iTime * 0.002;
+    seed.z += iTime * 0.002 + instanceIndex * 1000.;
 
     vec3 pos = aPosition;
     pos += aNormal * snoise(seed) * 0.5;

@@ -14,6 +14,11 @@ varying vec3 vViewDir;
 varying vec3 vWorldPos;
 uniform float iTime;
 
+float sheen(vec3 N, vec3 V, float intensity, float power) {
+    float facing = 1.0 - max(dot(N, V), 0.0); // More when facing away
+    return intensity * pow(facing, power);   // Power controls falloff
+}
+
 void main() {
     vec3 N = normalize(vWorldNormal);
     vec3 V = normalize(vViewDir);
@@ -33,6 +38,11 @@ void main() {
     // Fresnel (mix reflection and refraction based on angle)
     float fresnel = pow(1.0 - max(dot(N, V), 0.0), 5.0);
     vec3 color = mix(refractionColor, reflectionColor, fresnel);
+
+    float sheenFactor = sheen(N, V, 0.5, 4.0); // play with intensity and power
+    vec3 sheenColor = vec3(0.1) * sheenFactor;
+
+    color += sheenColor;
 
     gl_FragColor = vec4(color, 1.0); // Fake glass with env-based refraction & reflection
 }
