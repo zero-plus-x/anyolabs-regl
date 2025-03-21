@@ -1,14 +1,11 @@
-uniform sampler2D palette;
 precision highp float;
+uniform sampler2D palette;
 varying vec2 uv;
 uniform float iTime;
+uniform vec2 res;
 
 #include "lygia/generative/psrdnoise.glsl"
-#include "lygia/generative/fbm.glsl"
-
-float hash(vec2 p) {
-  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
-}
+#include "lygia/generative/srandom.glsl"
 
 #define TAU 6.28318530718
 #define MAX_ITER 5
@@ -32,10 +29,11 @@ void main() {
   colour = clamp(colour + vec3(0.0, 0.35, 0.5), 0.0, 1.0);
 
   vec2 nUv = uv;
-  // nUv.x = sin(nUv.x * 3.141592654 * 1.0);
-  // nUv.y = sin(nUv.y * 3.141592654 * 1.0);
-  float height = psrdnoise(vec3(nUv, time) * 2., vec3(1., 1., 0.5));
-  float noise = hash(nUv) * abs(height);
-  gl_FragColor = vec4(texture2D(palette, vec2(height, 0.0)).rgb + noise, 1.0);
+  nUv.x += time;
+  nUv.x = fract(nUv.x);
+  float height = psrdnoise(nUv * 1.0, vec2(1.));
+  float pixelIndex = uv.y * res.x + uv.x; // Row-major index
+  float noise = srandom(vec2(pixelIndex, 0.0)) * 0.25 + 0.25;
+  gl_FragColor = vec4(texture2D(palette, vec2(height, 0.0)).rgb + noise* (height * 0.5 + 0.5), 1.0);
 
 }

@@ -133,7 +133,7 @@ resl({
   manifest: {
     palette: {
       type: 'image',
-      src: 'assets/palette_2.png'
+      src: 'assets/palette4.png'
     },
   },
 
@@ -170,6 +170,7 @@ const drawBackground = regl({
     height: regl.prop('height'),
     iTime: ({ tick }) => 0.01 * tick,
     model: (context, props) => mat4.translate([], mat4.identity([]), props.position),
+    res: ({ viewportWidth, viewportHeight }) => [viewportWidth, viewportHeight],
   },
 
   elements: background.cells
