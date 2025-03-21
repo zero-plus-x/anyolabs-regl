@@ -13,6 +13,7 @@ varying vec3 vWorldNormal;
 varying vec3 vViewDir;
 varying vec3 vWorldPos;
 uniform float iTime;
+uniform float instanceIndex;
 
 float sheen(vec3 N, vec3 V, float intensity, float power) {
     float facing = 1.0 - max(dot(N, V), 0.0); // More when facing away
@@ -39,7 +40,9 @@ void main() {
     float fresnel = pow(1.0 - max(dot(N, V), 0.0), 5.0);
     vec3 color = mix(refractionColor, reflectionColor, fresnel);
 
-    float sheenFactor = sheen(N, V, 0.5, 4.0); // play with intensity and power
+    float sheenIntensity = 0.5 + 0.5 * sin(iTime * 0.0001 + instanceIndex);
+
+    float sheenFactor = sheen(N, V, sheenIntensity, 4.0); // play with intensity and power
     vec3 sheenColor = vec3(0.1) * sheenFactor;
 
     color += sheenColor;
