@@ -1,11 +1,23 @@
 precision highp float;
-attribute vec3 position, normal;
-uniform mat4 projection, view, model;
-uniform vec3 eye;
-uniform float iTime;
-varying vec3 eyeDir, fragNormal;
 
 #include "lygia/generative/psrdnoise.glsl"
+
+attribute vec3 position;
+attribute vec3 normal;
+attribute vec3 color;
+
+uniform mat3 normalMatrix;
+uniform mat4 projection;
+uniform mat4 view;
+uniform mat4 model;
+uniform vec3 eye;
+uniform float iTime;
+
+varying vec3 eyeDir;
+varying vec3 fragNormal;
+
+varying vec3 vNormal;   // Incoming normal from vertex shader
+varying vec3 vPosition; // Incoming position from vertex shader
 
 void main() {
     vec3 seed = position * 0.2;
@@ -20,5 +32,10 @@ void main() {
 
     fragNormal = normalize(worldNormal.xyz);
     eyeDir = normalize(eye - worldPos.xyz);
+
+    vPosition = vec3(model * view * vec4(position, 1.0));
+    vNormal = normalize(normalMatrix * normal); // Transform normal
+
+
     gl_Position = projection * view * worldPos;
 }

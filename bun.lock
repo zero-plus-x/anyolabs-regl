@@ -7,6 +7,7 @@
         "angle-normals": "^1.0.0",
         "bunny": "^1.0.1",
         "conway-hart": "^0.1.0",
+        "gl-mat3": "^2.0.0",
         "gl-mat4": "^1.2.0",
         "gl-vec3": "^1.1.3",
         "icosphere": "^1.0.0",
@@ -144,6 +145,8 @@
     "fuse-vertices": ["fuse-vertices@0.1.2", "", { "dependencies": { "generic-slice": "~0.0.0", "iota-array": "~0.0.0", "n-body-pairs": "~0.1.0" } }, "sha512-mEGnmyDErLYfbfqOKMG7qI6XRFGeprIxcFQnbqJpX/JiVsQ8UUUYkN/YS4K66OmBEiHfgUqP6Ej1VIhBadJwQA=="],
 
     "generic-slice": ["generic-slice@0.0.1", "", { "dependencies": { "sliced": "~0.0.5" } }, "sha512-kKI1PLdvDxbfZNoVp17AJGXwbKT7qadq6Xc43onzDsWuN0VvniJgX3X9fTVn/HexxG9re35bkci92TtXYlxSLw=="],
+
+    "gl-mat3": ["gl-mat3@2.0.0", "", {}, "sha512-/RfKyizhztkG+gH07lA0/OI9uXVEqDrvjza1U8kZc3Sjvn/iT1a99jyL1WtLzXMn/BYp0geE2/DsNp9GCXp28Q=="],
 
     "gl-mat4": ["gl-mat4@1.2.0", "", {}, "sha512-sT5C0pwB1/e9G9AvAoLsoaJtbMGjfd/jfxo8jMCKqYYEnjZuFvqV5rehqar0538EmssjdDeiEWnKyBSTw7quoA=="],
 

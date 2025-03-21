@@ -1,5 +1,6 @@
 import { default as initRegl } from 'regl'
 import mat4 from 'gl-mat4'
+import mat3 from 'gl-mat3'
 import vec3 from 'gl-vec3'
 import { default as resl } from 'resl'
 import { default as icosphere } from 'icosphere'
@@ -19,11 +20,9 @@ const mouse = mc()
 const regl = initRegl()
 const CUBE_MAP_SIZE = 512
 
-const GROUND_TILES = 20
-const GROUND_HEIGHT = -5.0
 const TEAPOT_TINT = [1, 1, 1]
 
-const teapotFBO = regl.framebufferCube(CUBE_MAP_SIZE)
+const sphereFBO = regl.framebufferCube(CUBE_MAP_SIZE)
 
 const CUBEMAP_SIDES = [
   { eye: [0, 0, 0], target: [1, 0, 0], up: [0, -1, 0] },
@@ -100,6 +99,40 @@ const setupCamera = regl({
   }
 }).bind(cameraProps)
 
+function computeNormalMatrix(modelViewMatrix) {
+  // Extract upper-left 3x3 matrix
+  const m = [
+    modelViewMatrix[0], modelViewMatrix[1], modelViewMatrix[2],
+    modelViewMatrix[4], modelViewMatrix[5], modelViewMatrix[6],
+    modelViewMatrix[8], modelViewMatrix[9], modelViewMatrix[10]
+  ];
+
+  // Compute determinant
+  const det = m[0] * (m[4] * m[8] - m[5] * m[7]) -
+    m[1] * (m[3] * m[8] - m[5] * m[6]) +
+    m[2] * (m[3] * m[7] - m[4] * m[6]);
+
+  if (Math.abs(det) < 1e-6) return null; // Avoid division by zero
+
+  // Compute inverse
+  const invDet = 1.0 / det;
+  const normalMatrix = [
+    (m[4] * m[8] - m[5] * m[7]) * invDet,
+    (m[2] * m[7] - m[1] * m[8]) * invDet,
+    (m[1] * m[5] - m[2] * m[4]) * invDet,
+
+    (m[5] * m[6] - m[3] * m[8]) * invDet,
+    (m[0] * m[8] - m[2] * m[6]) * invDet,
+    (m[2] * m[3] - m[0] * m[5]) * invDet,
+
+    (m[3] * m[7] - m[4] * m[6]) * invDet,
+    (m[1] * m[6] - m[0] * m[7]) * invDet,
+    (m[0] * m[4] - m[1] * m[3]) * invDet
+  ];
+
+  return normalMatrix;
+}
+
 const drawSphere = regl({
   vert: sphereVert,
   frag: sphereFrag,
@@ -119,8 +152,18 @@ const drawSphere = regl({
     projection: regl.context('projection'),
     eye: regl.context('eye'),
     tint: regl.prop('tint'),
-    envMap: teapotFBO,
+    envMap: sphereFBO,
     model: (context, { position }) => mat4.translate([], mat4.identity([]), position),
+    normalMatrix: (context, { position }) => {
+      const modelMatrix = mat4.create();
+      const viewMatrix = mat4.create();
+      const modelViewMatrix = mat4.create();
+      const normalMatrix = mat3.create();
+
+      mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
+      mat3.normalFromMat4(normalMatrix, modelViewMatrix);
+      return normalMatrix
+    },
     iTime: ({ tick }) => tick,
   }
 })
@@ -161,8 +204,6 @@ resl({
         palette: paletteTexture,
         projection: regl.context('projection'),
         view: regl.context('view'),
-        tileSize: regl.prop('tiles'),
-        height: regl.prop('height'),
         iTime: ({ tick }) => tick,
         model: (context, props) => mat4.translate([], mat4.identity([]), props.position),
         res: ({ viewportWidth, viewportHeight }) => [viewportWidth, viewportHeight],
@@ -170,20 +211,18 @@ resl({
 
     })
     regl.frame(({ drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
-      const teapotPos = [0, 0, 0]
+      const spherePos = [0, 0, 0]
 
-      // render teapot cube map
+      // render sphere cube map
       setupCube({
-        fbo: teapotFBO,
-        center: teapotPos
+        fbo: sphereFBO,
+        center: spherePos
       }, () => {
         regl.clear({
           color: [0.2, 0.2, 0.2, 1],
           depth: 1
         })
         drawBackground({
-          height: GROUND_HEIGHT,
-          tiles: GROUND_TILES,
           position: [0, 0, 0]
         })
       })
@@ -202,13 +241,11 @@ resl({
           depth: 1
         })
         drawBackground({
-          height: GROUND_HEIGHT,
-          tiles: GROUND_TILES,
           position: [0, 0, 0]
         })
         drawSphere({
           tint: TEAPOT_TINT,
-          position: teapotPos
+          position: spherePos
         })
       })
     })
