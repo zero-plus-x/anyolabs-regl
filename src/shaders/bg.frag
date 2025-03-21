@@ -25,15 +25,10 @@ void main() {
   }
   c /= float(MAX_ITER);
   c = 1.17 - pow(c, 1.4);
-  vec3 colour = vec3(pow(abs(c), 8.0));
-  colour = clamp(colour + vec3(0.0, 0.35, 0.5), 0.0, 1.0);
-
+  
   vec2 nUv = uv;
   nUv.x += time;
   nUv.x = fract(nUv.x);
   float height = psrdnoise(nUv * 1.0, vec2(1.));
-  float pixelIndex = uv.y * res.x + uv.x; // Row-major index
-  float noise = srandom(vec2(pixelIndex, 0.0)) * 0.25 + 0.25;
-  gl_FragColor = vec4(texture2D(palette, vec2(height, 0.0)).rgb + noise* (height * 0.5 + 0.5), 1.0);
-
+  gl_FragColor = vec4(texture2D(palette, vec2(height, 0.0)).rgb, 1.0);
 }
