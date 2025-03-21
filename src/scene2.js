@@ -100,15 +100,10 @@ const setupCamera = regl({
   }
 }).bind(cameraProps)
 
-const vertexShader = /*glsl*/ `
-`
-
 const drawSphere = regl({
+  vert: sphereVert,
   frag: sphereFrag,
 
-  vert: sphereVert,
-
-  elements: teapot.cells,
   attributes: {
     position: teapot.positions.map((p) => [
       4 * p[0],
@@ -117,6 +112,7 @@ const drawSphere = regl({
     ]),
     normal: normals(teapot.cells, teapot.positions)
   },
+  elements: teapot.cells,
 
   uniforms: {
     view: regl.context('view'),
@@ -139,85 +135,83 @@ resl({
 
   onDone: ({ palette }) => {
     const paletteTexture = regl.texture(palette)
-const drawBackground = regl({
-  cull: {
-    enable: true,
-    face: 'front', // Or 'front' if needed
-  },
-  depth: {
-    enable: true,
-    mask: true,
-    func: 'less'
-  },
-  frag: bgFrag,
+    const drawBackground = regl({
+      cull: {
+        enable: true,
+        face: 'front', // Or 'front' if needed
+      },
+      depth: {
+        enable: true,
+        mask: true,
+        func: 'less'
+      },
 
-  vert: bgVert,
+      vert: bgVert,
+      frag: bgFrag,
 
-  // primitive: 'triangles',
+      attributes: {
+        p: background.positions,
+        normal: background.normals,
+        uvs: background.uvs,
+        // indices: background.cells
+      },
+      elements: background.cells,
 
-  attributes: {
-    p: background.positions,
-    normal: background.normals,
-    uvs: background.uvs,
-    // indices: background.cells
-  },
+      uniforms: {
+        palette: paletteTexture,
+        projection: regl.context('projection'),
+        view: regl.context('view'),
+        tileSize: regl.prop('tiles'),
+        height: regl.prop('height'),
+        iTime: ({ tick }) => tick,
+        model: (context, props) => mat4.translate([], mat4.identity([]), props.position),
+        res: ({ viewportWidth, viewportHeight }) => [viewportWidth, viewportHeight],
+      },
 
-  uniforms: {
-    palette: paletteTexture,
-    projection: regl.context('projection'),
-    view: regl.context('view'),
-    tileSize: regl.prop('tiles'),
-    height: regl.prop('height'),
-    iTime: ({ tick }) => 0.01 * tick,
-    model: (context, props) => mat4.translate([], mat4.identity([]), props.position),
-    res: ({ viewportWidth, viewportHeight }) => [viewportWidth, viewportHeight],
-  },
-
-  elements: background.cells
-})
-regl.frame(({ drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
-  const teapotPos = [0, 0, 0]
-
-  // render teapot cube map
-  setupCube({
-    fbo: teapotFBO,
-    center: teapotPos
-  }, () => {
-    regl.clear({
-      color: [0.2, 0.2, 0.2, 1],
-      depth: 1
     })
-    drawBackground({
-      height: GROUND_HEIGHT,
-      tiles: GROUND_TILES,
-      position: [0, 0, 0]
-    })
-  })
+    regl.frame(({ drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
+      const teapotPos = [0, 0, 0]
 
-  const theta = 2.0 * Math.PI * (pixelRatio * mouse.x / drawingBufferWidth - 0.5)
-  setupCamera({
-    eye: [
-      20.0 * Math.cos(theta),
-      30.0 * (0.5 - pixelRatio * mouse.y / drawingBufferHeight),
-      20.0 * Math.sin(theta)
-    ],
-    target: [0, 0, 0]
-  }, ({ eye, tick }) => {
-    regl.clear({
-      color: [1, 1, 1, 1],
-      depth: 1
+      // render teapot cube map
+      setupCube({
+        fbo: teapotFBO,
+        center: teapotPos
+      }, () => {
+        regl.clear({
+          color: [0.2, 0.2, 0.2, 1],
+          depth: 1
+        })
+        drawBackground({
+          height: GROUND_HEIGHT,
+          tiles: GROUND_TILES,
+          position: [0, 0, 0]
+        })
+      })
+
+      const theta = 2.0 * Math.PI * (pixelRatio * mouse.x / drawingBufferWidth - 0.5)
+      setupCamera({
+        eye: [
+          20.0 * Math.cos(theta),
+          30.0 * (0.5 - pixelRatio * mouse.y / drawingBufferHeight),
+          20.0 * Math.sin(theta)
+        ],
+        target: [0, 0, 0]
+      }, ({ eye, tick }) => {
+        regl.clear({
+          color: [1, 1, 1, 1],
+          depth: 1
+        })
+        drawBackground({
+          height: GROUND_HEIGHT,
+          tiles: GROUND_TILES,
+          position: [0, 0, 0]
+        })
+        drawSphere({
+          tint: TEAPOT_TINT,
+          position: teapotPos
+        })
+      })
     })
-    drawBackground({
-      height: GROUND_HEIGHT,
-      tiles: GROUND_TILES,
-      position: [0, 0, 0]
-    })
-    drawSphere({
-      tint: TEAPOT_TINT,
-      position: teapotPos
-    })
-  })
-})
   },
 
   onProgress: (fraction) => {

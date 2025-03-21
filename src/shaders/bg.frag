@@ -12,7 +12,7 @@ uniform vec2 res;
 
 void main() {
 
-  float time = iTime * .05 + 23.0;
+  float time = iTime * 0.0005 + 23.0;
   vec2 p = mod(uv * TAU, TAU) - 250.0;
   vec2 i = vec2(p);
   float c = 1.0;
