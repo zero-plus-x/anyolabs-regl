@@ -17,12 +17,16 @@ varying vec3 vWorldPos;
 uniform float iTime;
 uniform float instanceIndex;
 
+uniform float noiseFrequency;
+uniform float noiseScale;
+uniform float animSpeed;
+
 void main() {
-    vec3 seed = aPosition * 0.1;
+    vec3 seed = aPosition * noiseFrequency;
     seed.z += iTime * 0.002 + instanceIndex * 1000.;
 
     vec3 pos = aPosition;
-    pos += aNormal * snoise(seed) * 0.5;
+    pos += aNormal * snoise(seed) * noiseScale;
 
     vec4 worldPos = modelMatrix * vec4(pos, 1.0);
     vWorldPos = worldPos.xyz;

@@ -11,6 +11,7 @@ import sphereVert from './shaders/glass.vert'
 import sphereFrag from './shaders/glass.frag'
 import bgFrag from './shaders/bg.frag'
 import bgVert from './shaders/bg.vert'
+import * as dat from 'dat.gui';
 
 const sphere = icosphereGen(5)
 const background = sphereGen(20, { segments: 32 })
@@ -18,8 +19,6 @@ const mouse = mc()
 
 const regl = initRegl()
 const CUBE_MAP_SIZE = 512
-
-const sphereFBO = regl.framebufferCube(CUBE_MAP_SIZE)
 
 const CUBEMAP_SIDES = [
   { cameraPosition: [0, 0, 0], target: [1, 0, 0], up: [0, -1, 0] },
@@ -64,10 +63,6 @@ function setupCube({ center, fbo }, block) {
 
   cubeProps.cubeFBO = fbo
   cubeProps.center = center
-
-  // execute `setupCubeFace` 6 times, where each time will be
-  // a different batch, and the batchIds of the 6 batches will be
-  // 0, 1, 2, 3, 4, 5
   setupCubeFace.call(cubeProps, 6, block)
 }
 
@@ -129,10 +124,13 @@ const drawSphere = regl({
     },
     cameraPosition: regl.context('cameraPosition'),
     envMap: regl.prop('envMap'),
-    reflectionRoughness: 0.5,
-    refractionRoughness: 0.1,
-    refractiveIndex: 1.33,
+    reflectionRoughness: regl.prop('reflectionRoughness'),
+    refractionRoughness: regl.prop('refractionRoughness'),
+    refractiveIndex: regl.prop('refractiveIndex'),
+    noiseScale: regl.prop('noiseScale'),
+    noiseFrequency: regl.prop('noiseFrequency'),
     iTime: ({ tick }) => tick,
+    animSpeed: regl.prop('animSpeed'),
     instanceIndex: regl.prop('instanceIndex'),
   }
 })
@@ -187,16 +185,48 @@ resl({
         iTime: ({ tick }) => tick,
         model: (context, props) => mat4.translate([], mat4.identity([]), props.position),
         res: ({ viewportWidth, viewportHeight }) => [viewportWidth, viewportHeight],
+        animSpeed: regl.prop('animSpeed'),
       },
-
     })
+    
+    const settings = {
+      "sphere": {
+        "reflectionRoughness": 0.07,
+        "refractionRoughness": 0.07,
+        "refractiveIndex": 2.02,
+        "noiseFrequency": 0.195,
+        "noiseScale": 1.3,
+        "animSpeed": 0.2
+      },
+      "bg": {
+        "animSpeed": 0.15000000000000002
+      }
+    }
+
+    const buttons = {}
+    buttons['Copy settings'] = () => {
+      navigator.clipboard.writeText(JSON.stringify(settings, null, 2))
+    }
+
+    const gui = new dat.GUI()
+
+    // gui.add(settings.sphere, 'refractionRoughness').min(0.01).max(1).step(0.01);
+    // gui.add(settings.sphere, 'refractiveIndex').min(1).max(2.33).step(0.01);
+    // gui.add(settings.sphere, 'reflectionRoughness').min(0.01).max(1).step(0.01);
+    gui.add(settings.sphere, 'noiseFrequency').min(0.0025).max(1).step(0.0001);
+    gui.add(settings.sphere, 'noiseScale').min(0.1).max(2).step(0.1);
+    gui.add(settings.sphere, 'animSpeed').min(0.025).max(1).step(0.05).name('Spheres speed');
+    gui.add(settings.bg, 'animSpeed').min(0.025).max(1).step(0.05).name('Bg speed');
+
+    gui.add(buttons, 'Copy settings')
+
     regl.frame(({ drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
 
       // render sphere cube map
       for (const instance of sphereInstances) {
         setupCube({ fbo: instance.fbo, center: instance.position }, () => {
           regl.clear({ color: [0.2, 0.2, 0.2, 1], depth: 1 })
-          drawBackground({ position: [0, 0, 0] })
+          drawBackground({ position: [0, 0, 0], ...settings.bg })
         })
       }
 
@@ -214,14 +244,16 @@ resl({
           depth: 1
         })
         drawBackground({
-          position: [0, 0, 0]
+          position: [0, 0, 0],
+          ...settings.bg
         })
         drawSphere(sphereInstances.map((instance, instanceIndex) => {
-          const y = Math.sin(tick * 0.001 + instanceIndex * 400) * 10
+          const y = Math.sin(tick * 0.001 * settings.sphere.animSpeed + instanceIndex * 400) * 10
           return ({
             position: [instance.position[0], y, instance.position[2]],
             envMap: instance.fbo,
-            instanceIndex
+            instanceIndex,
+            ...settings.sphere
           })
         }))
       })
