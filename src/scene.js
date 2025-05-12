@@ -5,7 +5,6 @@ import vec3 from 'gl-vec3'
 import resl from 'resl'
 import createSphere from 'primitive-sphere'
 import normals from 'angle-normals'
-import mc from 'mouse-change'
 import sphereVert from './shaders/glass.vert'
 import sphereFrag from './shaders/glass.frag'
 import bgFrag from './shaders/bg.frag'
@@ -13,8 +12,20 @@ import bgVert from './shaders/bg.vert'
 import * as dat from 'dat.gui';
 
 const sphere = createSphere(1, { segments: 128 })
-const background = createSphere(20, { segments: 32 })
-const mouse = mc()
+const background = createSphere(100, { segments: 64 })
+
+function createSeededRandom(seed) {
+  let value = seed % 2147483647;
+  if (value <= 0) value += 2147483646;
+
+  return function () {
+    value = (value * 16807) % 2147483647;
+    return (value - 1) / 2147483646;
+  };
+}
+
+// Example:
+const rand = createSeededRandom(9);
 
 const regl = createREGL({ extensions: ['angle_instanced_arrays'] })
 const CUBE_MAP_SIZE = 512
@@ -91,27 +102,25 @@ const setupCamera = regl({
   }
 }).bind(cameraProps)
 
-const N = 3
-const TOTAL = N * N * N
+const N = 6
+const TOTAL = N * N
 
-function generateCubeGrid(N) {
+function generateXYGridWithRandomZ(N) {
   const offset = (N - 1) / 2;
   const grid = [];
 
   for (let x = 0; x < N; x++) {
     for (let y = 0; y < N; y++) {
-      for (let z = 0; z < N; z++) {
-        grid.push([x - offset, y - offset, z - offset]);
-      }
+      const z = (rand() - 0.5) * 2;
+      grid.push([x - offset, y - offset, z]);
     }
   }
-  const scale = 5
-  return grid.map(p => [p[0] * scale, p[1] * scale, p[2] * scale]);
+
+  return grid;
 }
 
-let offset = generateCubeGrid(N)
-
-console.log(offset)
+const SCALE = 3.5
+const offset = generateXYGridWithRandomZ(N).map(p => [p[0] * SCALE, p[1] * SCALE, p[2] * 15])
 
 const offsetBuffer = regl.buffer({
   length: TOTAL * 3 * 4,
@@ -119,6 +128,41 @@ const offsetBuffer = regl.buffer({
   usage: 'dynamic'
 })
 
+function hsvToRgb({ h, s, v }) {
+  let c = v * s;
+  let x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  let m = v - c;
+  let [r, g, b] = [0, 0, 0];
+
+  if (h < 60)       [r, g, b] = [c, x, 0];
+  else if (h < 120) [r, g, b] = [x, c, 0];
+  else if (h < 180) [r, g, b] = [0, c, x];
+  else if (h < 240) [r, g, b] = [0, x, c];
+  else if (h < 300) [r, g, b] = [x, 0, c];
+  else              [r, g, b] = [c, 0, x];
+
+  return [
+    Math.round((r + m) * 255),
+    Math.round((g + m) * 255),
+    Math.round((b + m) * 255)
+  ];
+}
+function generateHueVariants(baseHSV, count, hueOffset = 30, seededRand = Math.random) {
+  const { h: baseH, s, v } = baseHSV;
+  const variants = [];
+
+  for (let i = 0; i < count; i++) {
+    const offset = (seededRand() - 0.5) * 2 * hueOffset;
+    let h = (baseH + offset) % 360;
+    if (h < 0) h += 360;
+    variants.push({ h, s, v });
+  }
+
+  return variants;
+}
+const base = { h: 200, s: 0.5, v: 0.01 };
+const variants = generateHueVariants(base, TOTAL)
+console.log(variants)
 const drawSphere = regl({
   vert: sphereVert,
   frag: sphereFrag,
@@ -132,15 +176,7 @@ const drawSphere = regl({
     },
     color: {
       buffer: regl.buffer(
-        Array(TOTAL).fill().map((_, i) => {
-          var x = Math.floor(i / N) / (N - 1)
-          var z = (i % N) / (N - 1)
-          return [
-            x * z * 0.3 + 0.7 * z,
-            x * x * 0.5 + z * z * 0.4,
-            x * z * x + 0.35
-          ]
-        })),
+        variants.map(v => hsvToRgb(v))),
       divisor: 1
     },
     angle: {
@@ -189,7 +225,7 @@ resl({
       type: 'image',
       // Nice dark one
       // src: 'assets/pal6.png'
-      src: 'assets/pal_light1.png'
+      src: 'assets/palette4.png'
     },
   },
 
@@ -284,12 +320,13 @@ resl({
 
       setupCamera({
         cameraPosition: [
-          3.5,
-          -8.5,
-          -10
+          1.5,
+          2,
+          15
         ],
         target: [0, 0, 0]
-      }, ({ tick }) => {
+      }, ({ tick, time }) => {
+        // console.log(tick, time)
         regl.clear({
           color: [1, 1, 1, 1],
           depth: 1
@@ -299,7 +336,14 @@ resl({
           ...settings.bg
         })
 
-        offsetBuffer.subdata(offset);
+        let newOffset = [...offset.map(p => [...p])]
+        for (let i = 0; i < offset.length; i++) {
+          const sinForZ = Math.sin(time * 0.01 + ((i / offset.length - 0.5) * Math.PI * 13)) * 10
+          const z = offset[i][2] + sinForZ
+          newOffset[i][2] = z;
+        }
+
+        offsetBuffer.subdata(newOffset);
 
         drawSphere([
           {

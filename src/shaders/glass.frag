@@ -12,6 +12,9 @@ uniform float refractiveIndex;     // e.g. 1.0 (air) / 1.5 (glass)
 varying vec3 vWorldNormal;
 varying vec3 vViewDir;
 varying vec3 vWorldPos;
+varying vec3 vNormal;
+varying vec3 vColor;
+
 uniform float iTime;
 
 float sheen(vec3 N, vec3 V, float intensity, float power) {
@@ -24,10 +27,10 @@ void main() {
     vec3 V = normalize(vViewDir);
 
     // Fake reflection (blur with random offset based on roughness)
-    vec3 R = reflect(-V, N);
+    vec3 R = -reflect(-V, N);
     vec3 randomOffsetR = random3(vWorldPos + R) * reflectionRoughness;
     vec3 blurredR = normalize(R + randomOffsetR);
-    vec3 reflectionColor = textureCube(envMap, blurredR).rgb;
+    vec3 reflectionColor = textureCube(envMap, blurredR).rgb * vColor;
 
     // Fake refraction (bend view vector by normal * refractive index)
     vec3 refractedDir = refract(-V, N, 1.0 / refractiveIndex);

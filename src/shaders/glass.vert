@@ -27,22 +27,17 @@ uniform float noiseScale;
 uniform float animSpeed;
 
 void main() {
-    vec3 seed = position * noiseFrequency;
+    vec3 offsetPos = position + offset;
+    vec3 seed = offsetPos * noiseFrequency;
     seed.z += iTime * 0.0003 + 0.0001 * 1000.;
 
-    vec3 pos = position + normal * snoise(seed) * noiseScale;
+    vec3 pos = offsetPos + normal * snoise(seed) * noiseScale;
 
     vWorldNormal = normalize(normalMatrix * normal);
-    vViewDir = normalize(cameraPosition - vWorldPos);
 
-    vec4 newPos = vec4(
-      +cos(angle) * pos.x + pos.z * sin(angle) + offset.x,
-      pos.y + offset.y,
-      -sin(angle) * pos.x  + pos.z * cos(angle) + offset.z,
-      1.0);
-
-    vec4 worldPos = modelMatrix * newPos;
+    vec4 worldPos = modelMatrix * vec4(pos, 1.0);
     vWorldPos = worldPos.xyz;
+    vViewDir = normalize(cameraPosition - vWorldPos);
 
     gl_Position = projectionMatrix * viewMatrix * worldPos;
 

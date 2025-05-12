@@ -15,23 +15,6 @@ varying vec3 vWorldPos;
 
 #include "lygia/generative/worley.glsl"
 
-// attribute vec3 position;
-// attribute vec3 normal;
-// attribute vec3 color;
-
-// uniform mat3 normalMatrix;
-// uniform mat4 projection;
-// uniform mat4 view;
-// uniform mat4 model;
-// uniform vec3 eye;
-// uniform float iTime;
-
-// varying vec3 eyeDir;
-// varying vec3 fragNormal;
-
-// varying vec3 vNormal;   // Incoming normal from vertex shader
-// varying vec3 vPosition; // Incoming position from vertex shader
-
 void main() {
     vec3 seed = position * 0.5;
     seed.z += sin(iTime * 0.01) * 0.5 + 0.5;
