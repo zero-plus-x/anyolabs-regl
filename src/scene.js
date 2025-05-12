@@ -2,7 +2,6 @@ import createREGL from 'regl'
 import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
 import vec3 from 'gl-vec3'
-import resl from 'resl'
 import createSphere from 'primitive-sphere'
 import normals from 'angle-normals'
 import sphereVert from './shaders/glass.vert'
@@ -30,7 +29,7 @@ const regl = createREGL({
       console.error(err)
       return
     }
-    resizeRegl(canvas, regl, updateFBO)
+    resizeRegl(canvas, regl)
 
     function hexColorToRgb(hex) {
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
@@ -158,6 +157,17 @@ const regl = createREGL({
 
     gui.add(buttons, 'Copy settings')
 
+    const width = nextPowerOf2(canvas.clientWidth)
+    const height = nextPowerOf2(canvas.clientHeight)
+    const bgFbo = regl.framebuffer({
+      color: regl.texture({
+        width,
+        height,
+        format: 'rgba',
+        type: 'uint8',
+      }),
+    })
+
     regl.frame(({ drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
       setupCamera(
         {
@@ -186,7 +196,7 @@ const regl = createREGL({
 
           offsetBuffer.subdata(newOffset)
 
-          drawSphere([
+          drawSpheres([
             {
               position: [0, 0, 0],
               envMap: bgFbo,
@@ -198,49 +208,6 @@ const regl = createREGL({
     })
   },
 })
-
-const CUBE_MAP_SIZE = 512
-
-const CUBEMAP_SIDES = [
-  { cameraPosition: [0, 0, 0], target: [1, 0, 0], up: [0, -1, 0] },
-  { cameraPosition: [0, 0, 0], target: [-1, 0, 0], up: [0, -1, 0] },
-  { cameraPosition: [0, 0, 0], target: [0, 1, 0], up: [0, 0, 1] },
-  { cameraPosition: [0, 0, 0], target: [0, -1, 0], up: [0, 0, -1] },
-  { cameraPosition: [0, 0, 0], target: [0, 0, 1], up: [0, -1, 0] },
-  { cameraPosition: [0, 0, 0], target: [0, 0, -1], up: [0, -1, 0] },
-]
-
-const setupCubeFace = regl({
-  framebuffer: function (context, props, batchId) {
-    return this.cubeFBO.faces[batchId]
-  },
-
-  context: {
-    projectionMatrix: regl.this('projectionMatrix'),
-    viewMatrix: function (context, props, batchId) {
-      const view = this.viewMatrix
-      const side = CUBEMAP_SIDES[batchId]
-      const target = vec3.add([0, 0, 0], this.center, side.target)
-      mat4.lookAt(view, this.center, target, side.up)
-      return view
-    },
-    cameraPosition: regl.this('center'),
-  },
-})
-
-const cubeProps = {
-  projectionMatrix: new Float32Array(16),
-  viewMatrix: new Float32Array(16),
-  cubeFBO: null,
-}
-
-function setupCube({ center, fbo }, block) {
-  mat4.perspective(cubeProps.projectionMatrix, Math.PI / 2.0, 1.0, 0.25, 1000.0)
-
-  cubeProps.cubeFBO = fbo
-  cubeProps.center = center
-  setupCubeFace.call(cubeProps, 6, block)
-}
 
 const cameraProps = {
   fov: Math.PI / 4.0,
@@ -276,7 +243,7 @@ const offsetBuffer = regl.buffer({
 const base = { h: 200, s: 0.5, v: 0.01 }
 const variants = generateHueVariants(base, TOTAL)
 
-const drawSphere = regl({
+const drawSpheres = regl({
   vert: sphereVert,
   frag: sphereFrag,
 
@@ -339,18 +306,3 @@ const drawSphere = regl({
     animSpeed: regl.prop('animSpeed'),
   },
 })
-
-const width = nextPowerOf2(canvas.clientWidth)
-const height = nextPowerOf2(canvas.clientHeight)
-const bgFbo = regl.framebuffer({
-  color: regl.texture({
-    width,
-    height,
-    format: 'rgba',
-    type: 'uint8',
-  }),
-})
-
-function updateFBO(width, height) {
-  bgFbo.resize(width, height)
-}

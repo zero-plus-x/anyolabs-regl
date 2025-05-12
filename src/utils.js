@@ -24,9 +24,6 @@ export function resizeRegl(canvas, regl, updateFBO) {
 
       // Notify regl about the new size (optional for internal buffers)
       regl._gl.viewport(0, 0, width, height)
-
-      // Recreate or resize framebuffers/textures here if needed
-      updateFBO(width, height)
     }
   })
 
