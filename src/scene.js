@@ -13,11 +13,12 @@ import bgFrag from './shaders/bg.frag'
 import bgVert from './shaders/bg.vert'
 import * as dat from 'dat.gui';
 
-const sphere = createIcosphere(1, { subdivisions: 5 })
+const sphere = createSphere(1, { segments: 128 })
+console.log(sphere)
 const background = createSphere(20, { segments: 32 })
 const mouse = mc()
 
-const regl = createREGL()
+const regl = createREGL({ extensions: ['angle_instanced_arrays'] })
 const CUBE_MAP_SIZE = 512
 
 const CUBEMAP_SIDES = [
@@ -92,22 +93,53 @@ const setupCamera = regl({
   }
 }).bind(cameraProps)
 
-
+const N = 15
 
 const drawSphere = regl({
   vert: sphereVert,
   frag: sphereFrag,
 
   attributes: {
-    aPosition: sphere.positions.map((p) => [
+    position: sphere.positions.map((p) => [
       4 * p[0],
       4 * p[1],
       4 * p[2]
     ]),
-    aNormal: normals(sphere.cells, sphere.positions)
+    normal: normals(sphere.cells, sphere.positions),
+    offset: {
+      buffer: regl.buffer(
+        Array(N * N).fill().map((_, i) => {
+          var x = (-1 + 2 * Math.floor(i / N) / N) * 120
+          var z = (-1 + 2 * (i % N) / N) * 120
+          return [x, 0.0, z]
+        })),
+      divisor: 1
+    },
+    color: {
+      buffer: regl.buffer(
+        Array(N * N).fill().map((_, i) => {
+          var x = Math.floor(i / N) / (N - 1)
+          var z = (i % N) / (N - 1)
+          return [
+            x * z * 0.3 + 0.7 * z,
+            x * x * 0.5 + z * z * 0.4,
+            x * z * x + 0.35
+          ]
+        })),
+      divisor: 1
+    },
+    angle: {
+      buffer: regl.buffer(
+        Array(N * N).fill().map((_, i) => {
+          var x = Math.floor(i / N) / (N - 1)
+          var z = (i % N) / (N - 1)
+          return [x, z]
+        })),
+      divisor: 1
+    }
   },
   elements: sphere.cells,
-
+  instances: N * N,
   uniforms: {
     modelMatrix: (context, { position }) => mat4.translate([], mat4.identity([]), position),
     viewMatrix: regl.context('viewMatrix'),
