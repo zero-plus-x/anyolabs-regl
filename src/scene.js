@@ -1,24 +1,13 @@
 import createREGL from 'regl'
 import mat4 from 'gl-mat4'
-import mat3 from 'gl-mat3'
-import createSphere from 'primitive-sphere'
-import normals from 'angle-normals'
-import sphereVert from './shaders/glass.vert'
-import sphereFrag from './shaders/glass.frag'
 import * as dat from 'dat.gui'
 import {
-  createSeededRandom,
   nextPowerOf2,
   resizeRegl,
-  generateXYGridWithRandomZ,
-  hsvToRgb,
   hexColorToRgb,
-  generateHueVariants,
 } from './utils'
-
-const sphere = createSphere(1, { segments: 128 })
-
-const rand = createSeededRandom(13)
+import { createDrawSpheresCommand } from './commands/spheres'
+import { TOTAL, OFFSET as offset} from './commands/constants'
 
 const canvas = document.getElementById('heroImage')
 const regl = createREGL({
@@ -31,7 +20,13 @@ const regl = createREGL({
     }
     resizeRegl(canvas, regl)
 
+    const offsetBuffer = regl.buffer({
+      length: TOTAL * 3 * 4,
+      type: 'float',
+      usage: 'dynamic',
+    })
 
+    const drawSpheres = createDrawSpheresCommand(regl, offsetBuffer)
 
     const colorPoints = [
       { position: [0, 0], color: hexColorToRgb('#9670c2') },
@@ -163,13 +158,13 @@ const regl = createREGL({
       }),
     })
 
-    regl.frame(({ drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
+    regl.frame(() => {
       setupCamera(
         {
           cameraPosition: [1.5, 2, 15],
           target: [0, 0, 0],
         },
-        ({ tick, time }) => {
+        ({ time }) => {
           // console.log(tick, time)
           regl.clear({
             color: [1, 1, 1, 1],
@@ -194,7 +189,7 @@ const regl = createREGL({
           drawSpheres([
             {
               position: [0, 0, 0],
-              envMap: bgFbo,
+              fbo: bgFbo,
               ...settings.sphere,
             },
           ])
@@ -216,88 +211,9 @@ const setupCamera = regl({
     projectionMatrix: function ({ viewportWidth, viewportHeight }) {
       return mat4.perspective(this.projectionMatrix, this.fov, viewportWidth / viewportHeight, 0.01, 1000.0)
     },
-    viewMatrix: function (context, { cameraPosition, target }) {
+    viewMatrix: function (_, { cameraPosition, target }) {
       return mat4.lookAt(this.viewMatrix, cameraPosition, target, [0, 1, 0])
     },
     cameraPosition: regl.prop('cameraPosition'),
   },
 }).bind(cameraProps)
-
-const N = 6
-const TOTAL = N * N
-
-const SCALE = 3.5
-const offset = generateXYGridWithRandomZ(N, rand).map((p) => [p[0] * SCALE, p[1] * SCALE, p[2] * 15])
-
-const offsetBuffer = regl.buffer({
-  length: TOTAL * 3 * 4,
-  type: 'float',
-  usage: 'dynamic',
-})
-
-const base = { h: 200, s: 0.5, v: 0.01 }
-const variants = generateHueVariants(base, TOTAL)
-
-const drawSpheres = regl({
-  vert: sphereVert,
-  frag: sphereFrag,
-
-  attributes: {
-    position: sphere.positions,
-    normal: normals(sphere.cells, sphere.positions),
-    offset: {
-      buffer: offsetBuffer,
-      divisor: 1,
-    },
-    color: {
-      buffer: regl.buffer(variants.map((v) => hsvToRgb(v))),
-      divisor: 1,
-    },
-    index: {
-      buffer: regl.buffer(
-        Array(TOTAL)
-          .fill()
-          .map((_, i) => i),
-      ),
-      divisor: 1,
-    },
-    angle: {
-      buffer: regl.buffer(
-        Array(TOTAL)
-          .fill()
-          .map((_, i) => {
-            var x = Math.floor(i / N) / (N - 1)
-            var z = (i % N) / (N - 1)
-            return [x, z]
-          }),
-      ),
-      divisor: 1,
-    },
-  },
-  elements: sphere.cells,
-  instances: TOTAL,
-  uniforms: {
-    modelMatrix: (context, { position }) => mat4.translate([], mat4.identity([]), position),
-    viewMatrix: regl.context('viewMatrix'),
-    projectionMatrix: regl.context('projectionMatrix'),
-    normalMatrix: (context, { position }) => {
-      const modelMatrix = mat4.create()
-      const viewMatrix = mat4.create()
-      const modelViewMatrix = mat4.create()
-      const normalMatrix = mat3.create()
-
-      mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix)
-      mat3.normalFromMat4(normalMatrix, modelViewMatrix)
-      return normalMatrix
-    },
-    cameraPosition: regl.context('cameraPosition'),
-    envMap: regl.prop('envMap'),
-    reflectionRoughness: regl.prop('reflectionRoughness'),
-    refractionRoughness: regl.prop('refractionRoughness'),
-    refractiveIndex: regl.prop('refractiveIndex'),
-    noiseScale: regl.prop('noiseScale'),
-    noiseFrequency: regl.prop('noiseFrequency'),
-    iTime: ({ tick }) => tick,
-    animSpeed: regl.prop('animSpeed'),
-  },
-})
