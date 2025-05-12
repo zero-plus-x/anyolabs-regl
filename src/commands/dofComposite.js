@@ -57,7 +57,7 @@ export const createDOFCompositeCommand = (regl) =>
             vec2 offset = vec2(x, y) * 0.001 * coc; // scale by coc
 
             vec3 blurBase = texture2D(u_colorBlur, v_uv + offset).rgb;
-            
+
             if (hasGeometry) {
               blurBase = mix(blurBase, u_tintColor, tintAmount);
             }
