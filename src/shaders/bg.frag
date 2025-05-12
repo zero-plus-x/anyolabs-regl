@@ -8,6 +8,7 @@ uniform float animSpeed;
 #include "lygia/generative/psrdnoise.glsl"
 #include "lygia/generative/fbm.glsl"
 #include "lygia/generative/gnoise.glsl"
+#include "lygia/generative/pnoise.glsl"
 
 #define TAU 6.28318530718
 #define MAX_ITER 5
@@ -30,9 +31,8 @@ void main() {
   
   vec2 nUv = uv;
   nUv.x += time;
-  nUv.x = fract(nUv.x);
-  float height = psrdnoise(nUv, vec2(1.0, 1.0));
-  height = height + 0.1;
-  height = height * height;
+  // nUv.y += time;
+  // nUv.y = fract(nUv.y);
+  float height = pnoise(nUv, vec2(1.));
   gl_FragColor = vec4(texture2D(palette, vec2(height, 0.0)).rgb, 1.0);
 }

@@ -7,6 +7,7 @@ attribute vec3 normal;
 attribute vec3 offset;
 attribute vec3 color;
 attribute float angle;
+attribute float index;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
@@ -29,7 +30,7 @@ uniform float animSpeed;
 void main() {
     vec3 offsetPos = position + offset;
     vec3 seed = offsetPos * noiseFrequency;
-    seed.z += iTime * 0.0003 + 0.0001 * 1000.;
+    seed.z += iTime * 0.001 + index;
 
     vec3 pos = offsetPos + normal * snoise(seed) * noiseScale;
 

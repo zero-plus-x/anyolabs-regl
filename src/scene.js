@@ -179,6 +179,11 @@ const drawSphere = regl({
         variants.map(v => hsvToRgb(v))),
       divisor: 1
     },
+    index: {
+      buffer: regl.buffer(
+        Array(TOTAL).fill().map((_, i) => i)),
+      divisor: 1
+    },
     angle: {
       buffer: regl.buffer(
         Array(TOTAL).fill().map((_, i) => {
@@ -223,9 +228,7 @@ resl({
   manifest: {
     palette: {
       type: 'image',
-      // Nice dark one
-      // src: 'assets/pal6.png'
-      src: 'assets/palette4.png'
+      src: 'assets/palette5.png'
     },
   },
 
@@ -285,7 +288,7 @@ resl({
         "refractionRoughness": 0.07,
         "refractiveIndex": 2.02,
         "noiseFrequency": 0.46530000000000005,
-        "noiseScale": 0.03,
+        "noiseScale": 0.05,
         "animSpeed": 0.05
       },
       "bg": {
