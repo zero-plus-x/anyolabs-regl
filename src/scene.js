@@ -265,10 +265,19 @@ resl({
       depth: true,
     })
 
+    function hexColorToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+      return result
+        ? [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255]
+        : null
+    }
+
     const colorPoints = [
-      { position: [0.2, 0.3], color: [1.0, 0.0, 0.0] },
-      { position: [0.8, 0.3], color: [0.0, 1.0, 0.0] },
-      { position: [0.5, 0.8], color: [0.0, 0.0, 1.0] },
+      { position: [0, 0], color: hexColorToRgb('#9670c2') },
+      { position: [1, 0], color: hexColorToRgb('#358fe8') },
+      { position: [0, 1], color: hexColorToRgb('#ffffff') },
+      { position: [1, 1], color: hexColorToRgb('#9670c2') },
+      { position: [0.5, 0.5], color: hexColorToRgb('#358fe8') },
     ]
 
     const drawAnimatedBackground = regl({
@@ -281,11 +290,11 @@ resl({
           gl_Position = vec4(position, 0, 1);
         }
       `,
-      frag: `
+      frag: /* glsl */ `
         precision mediump float;
 
-        uniform vec2 u_positions[3];
-        uniform vec3 u_colors[3];
+        uniform vec2 u_positions[5];
+        uniform vec3 u_colors[5];
         uniform float u_time;
         varying vec2 v_uv;
 
@@ -293,9 +302,9 @@ resl({
           vec3 color = vec3(0.0);
           float totalWeight = 0.0;
 
-          for (int i = 0; i < 3; i++) {
-            float d = distance(v_uv, u_positions[i] + 0.01 * vec2(sin(u_time + float(i)), cos(u_time + float(i))));
-            float w = 1.0 / (d + 0.001);  // avoid divide by zero
+          for (int i = 0; i < 5; i++) {
+            float d = distance(v_uv, u_positions[i] + 0.5 * vec2(sin(u_time + float(i)), cos(u_time + float(i))));
+            float w = exp(-5.0 * d * d); // Gaussian-like falloff
             color += u_colors[i] * w;
             totalWeight += w;
           }
@@ -317,10 +326,14 @@ resl({
         'u_positions[0]': () => colorPoints[0].position,
         'u_positions[1]': () => colorPoints[1].position,
         'u_positions[2]': () => colorPoints[2].position,
+        'u_positions[3]': () => colorPoints[3].position,
+        'u_positions[4]': () => colorPoints[4].position,
 
         'u_colors[0]': () => colorPoints[0].color,
         'u_colors[1]': () => colorPoints[1].color,
         'u_colors[2]': () => colorPoints[2].color,
+        'u_colors[3]': () => colorPoints[3].color,
+        'u_colors[4]': () => colorPoints[4].color,
 
         u_time: ({ time }) => time,
       },
@@ -406,7 +419,7 @@ resl({
         refractionRoughness: 0.07,
         refractiveIndex: 2.02,
         noiseFrequency: 0.46530000000000005,
-        noiseScale: 0.05,
+        noiseScale: 0.1,
         animSpeed: 0.05,
       },
       bg: {
