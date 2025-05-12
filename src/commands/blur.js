@@ -1,4 +1,5 @@
-export const createBlurPassCommand = (regl) => regl({
+export const createBlurPassCommand = (regl) =>
+  regl({
     vert: `
       precision mediump float;
       attribute vec2 position;
@@ -9,7 +10,7 @@ export const createBlurPassCommand = (regl) => regl({
         gl_Position = vec4(position, 0.0, 1.0);
       }
     `,
-  
+
     frag: `
       precision mediump float;
       uniform sampler2D u_color;
@@ -28,23 +29,21 @@ export const createBlurPassCommand = (regl) => regl({
         gl_FragColor = vec4(sum / 25.0, 1.0);
       }
     `,
-  
+
     attributes: {
       position: [
         [-1, -1],
         [1, -1],
-        [-1,  1],
-        [-1,  1],
+        [-1, 1],
+        [-1, 1],
         [1, -1],
-        [1,  1]
-      ]
+        [1, 1],
+      ],
     },
-  
+    framebuffer: regl.prop('fbo'),
     uniforms: {
       u_color: regl.prop('colorTex'),
-      u_resolution: ({ drawingBufferWidth: w, drawingBufferHeight: h }) => [w, h]
+      u_resolution: ({ drawingBufferWidth: w, drawingBufferHeight: h }) => [w, h],
     },
-  
-    framebuffer: regl.prop('fbo'),
-    count: 6
-  });
+    count: 6,
+  })

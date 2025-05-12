@@ -34,7 +34,8 @@ void main() {
 
     vec3 pos = offsetPos + normal * snoise(seed) * noiseScale;
 
-    vWorldNormal = normalize(normalMatrix * normal);
+    mat3 nMat = mat3(viewMatrix * modelMatrix);
+    vWorldNormal = normalize(nMat * normal);
 
     vec4 worldPos = modelMatrix * vec4(pos, 1.0);
     vWorldPos = worldPos.xyz;

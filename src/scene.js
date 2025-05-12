@@ -7,7 +7,7 @@ import { createDrawAnimatedBackgroundCommand } from './commands/background'
 import { createBlurPassCommand } from './commands/blur'
 import { createDOFCompositeCommand } from './commands/dofComposite'
 import { TOTAL, OFFSET as offset } from './commands/constants'
-import { frame } from './commands/frame'
+import { createSetupCamera } from './commands/camera'
 
 const canvas = document.getElementById('heroImage')
 const regl = createREGL({
@@ -69,6 +69,10 @@ const regl = createREGL({
 
     /* Setup REGL */
 
+    const setupCamera = createSetupCamera({
+      regl,
+    })
+
     const offsetBuffer = regl.buffer({
       length: TOTAL * 3 * 4,
       type: 'float',
@@ -106,10 +110,10 @@ const regl = createREGL({
         width,
         height,
         format: 'rgba',
-        type: 'uint8'
+        type: 'uint8',
       }),
-      depth: true
-    });
+      depth: true,
+    })
 
     const sceneFbo = regl.framebuffer({
       color: regl.texture({ width, height, format: 'rgba' }),
@@ -120,22 +124,78 @@ const regl = createREGL({
 
     resizeRegl(canvas, regl, [bgFbo, depthFbo, sceneFbo, blurFbo])
 
-    regl.frame(
-      frame(regl, {
-        canvas,
-        bgFbo,
-        depthFbo,
-        sceneFbo,
-        blurFbo,
-        offsetBuffer,
-        offset,
-        drawAnimatedBackground,
-        drawSpheres,
-        drawDepth,
-        blurPass,
-        dofComposite,
-        settings,
-      }),
+    regl.frame(() =>
+      setupCamera(
+        {
+          cameraPosition: [1.5, 2, 15],
+          target: [0, 0, 0],
+        },
+        ({ time }) => {
+          // Step 1: Render background + spheres into sceneFbo
+          regl({ framebuffer: sceneFbo })(() => {
+            regl.clear({ color: [1, 1, 1, 1], depth: 1 }) // ✅ clear FBO
+
+            // bgFbo.resize(width, height)
+            // blurFbo.resize(width, height)
+            // depthFbo.resize(width, height)
+            // regl.clear({ color: [1, 1, 1, 1], depth: 1 })
+
+            // background to screen
+            drawAnimatedBackground({ fbo: sceneFbo })
+
+            // background to envMap texture
+            drawAnimatedBackground({ fbo: bgFbo })
+
+            // animate sphere Z positions
+            const newOffset = offset.map(([x, y, baseZ], i) => {
+              const z = baseZ + Math.sin(time * 0.01 + (i / offset.length - 0.5) * Math.PI * 13) * 10
+              return [x, y, z]
+            })
+            offsetBuffer.subdata(newOffset)
+
+            drawSpheres([
+              {
+                position: [0, 0, 0],
+                envMap: bgFbo,
+                fbo: sceneFbo,
+                ...settings.sphere,
+              },
+            ])
+          })
+
+          // 1. Render scene to FBO (done earlier)
+          // 2. Blur scene color texture
+
+          blurPass({
+            colorTex: sceneFbo.color[0],
+            fbo: blurFbo,
+          })
+
+          // 2. Render depth
+
+          regl({ framebuffer: depthFbo })(() => {
+            regl.clear({ color: [1, 1, 1, 1], depth: 1 }) // clear depth texture!
+            drawDepth({
+              position: [0, 0, 0],
+              envMap: bgFbo,
+              ...settings.sphere,
+              fbo: depthFbo,
+            })
+          })
+
+          // 3. Composite with DOF
+          regl({ framebuffer: null })(() => {
+            regl.clear({ color: [0, 0, 0, 1], depth: 1 })
+            dofComposite({
+              sharpTex: sceneFbo.color[0],
+              blurTex: blurFbo.color[0],
+              depthTex: depthFbo.color[0], // must be manually rendered
+              focus: 0.05, // animate
+              aperture: 12.0,
+            })
+          })
+        },
+      ),
     )
   },
 })

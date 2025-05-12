@@ -61,7 +61,7 @@ export const createDrawSpheresCommand = (regl, offsetBuffer) =>
         return normalMatrix
       },
       cameraPosition: regl.context('cameraPosition'),
-      envMap: regl.prop('fbo'),
+      envMap: regl.prop('envMap'),
       reflectionRoughness: regl.prop('reflectionRoughness'),
       refractionRoughness: regl.prop('refractionRoughness'),
       refractiveIndex: regl.prop('refractiveIndex'),
@@ -70,6 +70,7 @@ export const createDrawSpheresCommand = (regl, offsetBuffer) =>
       iTime: ({ tick }) => tick,
       animSpeed: regl.prop('animSpeed'),
     },
+    framebuffer: regl.prop('fbo'),
   })
 
 
@@ -129,7 +130,20 @@ export const createDrawDepthCommand = (regl, offsetBuffer) =>
       modelMatrix: (context, { position }) => mat4.translate([], mat4.identity([]), position),
       viewMatrix: regl.context('viewMatrix'),
       projectionMatrix: regl.context('projectionMatrix'),
+      normalMatrix: (context, { position }) => {
+        const modelMatrix = mat4.create()
+        const viewMatrix = mat4.create()
+        const modelViewMatrix = mat4.create()
+        const normalMatrix = mat3.create()
+
+        mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix)
+        mat3.normalFromMat4(normalMatrix, modelViewMatrix)
+        return normalMatrix
+      },
       cameraPosition: regl.context('cameraPosition'),
+      noiseScale: regl.prop('noiseScale'),
+      noiseFrequency: regl.prop('noiseFrequency'),
+      iTime: ({ tick }) => tick,
     },
 
     framebuffer: regl.prop('fbo'),
