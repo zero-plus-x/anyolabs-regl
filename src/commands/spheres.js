@@ -73,7 +73,6 @@ export const createDrawSpheresCommand = (regl, offsetBuffer) =>
     framebuffer: regl.prop('fbo'),
   })
 
-
 export const createDrawDepthCommand = (regl, offsetBuffer) =>
   regl({
     vert: sphereVert,
@@ -147,4 +146,41 @@ export const createDrawDepthCommand = (regl, offsetBuffer) =>
     },
 
     framebuffer: regl.prop('fbo'),
+  })
+
+export const createDrawDepthDebugCommand = (regl) =>
+  regl({
+    vert: /*glsl*/ `
+        precision mediump float;
+        attribute vec2 position;
+        varying vec2 v_uv;
+        void main() {
+          v_uv = 0.5 * (position + 1.0);
+          gl_Position = vec4(position, 0.0, 1.0);
+        }
+      `,
+    frag: /*glsl*/ `
+        precision mediump float;
+        uniform sampler2D depthTex;
+        varying vec2 v_uv;
+        void main() {
+          float d = texture2D(depthTex, v_uv).r;
+          gl_FragColor = vec4(vec3(d), 1.0); // grayscale visualization
+        }
+      `,
+    attributes: {
+      position: [
+        [-1, -1],
+        [1, -1],
+        [-1, 1],
+        [-1, 1],
+        [1, -1],
+        [1, 1],
+      ],
+    },
+    uniforms: {
+      depthTex: regl.prop('depthTex'),
+    },
+    depth: { enable: false },
+    count: 6,
   })

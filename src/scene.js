@@ -3,6 +3,7 @@ import * as dat from 'dat.gui'
 import { nextPowerOf2, resizeRegl, hexColorToRgb } from './utils'
 import { createDrawSpheresCommand } from './commands/spheres'
 import { createDrawDepthCommand } from './commands/spheres'
+import { createDrawDepthDebugCommand } from './commands/spheres'
 import { createDrawAnimatedBackgroundCommand } from './commands/background'
 import { createBlurPassCommand } from './commands/blur'
 import { createDOFCompositeCommand } from './commands/dofComposite'
@@ -166,6 +167,7 @@ const regl = createREGL({
           // 1. Render scene to FBO (done earlier)
           // 2. Blur scene color texture
 
+          regl.clear({ color: [1, 1, 1, 1], depth: 1, framebuffer: blurFbo })
           blurPass({
             colorTex: sceneFbo.color[0],
             fbo: blurFbo,
