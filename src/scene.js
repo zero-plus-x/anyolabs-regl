@@ -1,14 +1,9 @@
 import createREGL from 'regl'
-import mat4 from 'gl-mat4'
 import * as dat from 'dat.gui'
-import {
-  nextPowerOf2,
-  resizeRegl,
-  hexColorToRgb,
-} from './utils'
+import { nextPowerOf2, resizeRegl, hexColorToRgb } from './utils'
 import { createDrawSpheresCommand } from './commands/spheres'
 import { createDrawAnimatedBackgroundCommand } from './commands/background'
-import { TOTAL, OFFSET as offset} from './commands/constants'
+import { TOTAL, OFFSET as offset } from './commands/constants'
 import { frame } from './commands/frame'
 
 const canvas = document.getElementById('heroImage')
@@ -20,26 +15,8 @@ const regl = createREGL({
       console.error(err)
       return
     }
-    resizeRegl(canvas, regl)
 
-    const offsetBuffer = regl.buffer({
-      length: TOTAL * 3 * 4,
-      type: 'float',
-      usage: 'dynamic',
-    })
-
-    const drawSpheres = createDrawSpheresCommand(regl, offsetBuffer)
-
-    const colorPoints = [
-      { position: [0, 0], color: hexColorToRgb('#9670c2') },
-      { position: [1, 0], color: hexColorToRgb('#358fe8') },
-      { position: [0, 1], color: hexColorToRgb('#358fe8') },
-      { position: [1, 1], color: hexColorToRgb('#9670c2') },
-      { position: [0.5, 0.5], color: hexColorToRgb('#ffffff') },
-    ]
-
-    const drawAnimatedBackground = createDrawAnimatedBackgroundCommand(regl, colorPoints)
-
+    /* Setup GUI */
     // Dark settings
     // const settings = {
     //   "sphere": {
@@ -87,6 +64,27 @@ const regl = createREGL({
 
     gui.add(buttons, 'Copy settings')
 
+    /* Setup REGL */
+    resizeRegl(canvas, regl)
+
+    const offsetBuffer = regl.buffer({
+      length: TOTAL * 3 * 4,
+      type: 'float',
+      usage: 'dynamic',
+    })
+
+    const drawSpheres = createDrawSpheresCommand(regl, offsetBuffer)
+
+    const colorPoints = [
+      { position: [0, 0], color: hexColorToRgb('#9670c2') },
+      { position: [1, 0], color: hexColorToRgb('#358fe8') },
+      { position: [0, 1], color: hexColorToRgb('#358fe8') },
+      { position: [1, 1], color: hexColorToRgb('#9670c2') },
+      { position: [0.5, 0.5], color: hexColorToRgb('#ffffff') },
+    ]
+
+    const drawAnimatedBackground = createDrawAnimatedBackgroundCommand(regl, colorPoints)
+
     const width = nextPowerOf2(canvas.clientWidth)
     const height = nextPowerOf2(canvas.clientHeight)
     const bgFbo = regl.framebuffer({
@@ -98,14 +96,15 @@ const regl = createREGL({
       }),
     })
 
-    regl.frame(frame(regl, {
-      bgFbo,
-      offsetBuffer,
-      offset,
-      drawAnimatedBackground,
-      drawSpheres,
-      settings,
-    }))
+    regl.frame(
+      frame(regl, {
+        bgFbo,
+        offsetBuffer,
+        offset,
+        drawAnimatedBackground,
+        drawSpheres,
+        settings,
+      }),
+    )
   },
 })
-

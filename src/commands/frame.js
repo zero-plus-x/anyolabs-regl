@@ -10,7 +10,6 @@ export const frame = (regl, { bgFbo, offsetBuffer, offset, drawAnimatedBackgroun
         target: [0, 0, 0],
       },
       ({ time }) => {
-        // console.log(tick, time)
         regl.clear({
           color: [1, 1, 1, 1],
           depth: 1,
