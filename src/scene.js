@@ -1,7 +1,6 @@
 import createREGL from 'regl'
 import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
-import vec3 from 'gl-vec3'
 import createSphere from 'primitive-sphere'
 import normals from 'angle-normals'
 import sphereVert from './shaders/glass.vert'
@@ -13,12 +12,13 @@ import {
   resizeRegl,
   generateXYGridWithRandomZ,
   hsvToRgb,
+  hexColorToRgb,
   generateHueVariants,
 } from './utils'
 
 const sphere = createSphere(1, { segments: 128 })
 
-const rand = createSeededRandom(9)
+const rand = createSeededRandom(13)
 
 const canvas = document.getElementById('heroImage')
 const regl = createREGL({
@@ -31,19 +31,14 @@ const regl = createREGL({
     }
     resizeRegl(canvas, regl)
 
-    function hexColorToRgb(hex) {
-      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-      return result
-        ? [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255]
-        : null
-    }
+
 
     const colorPoints = [
       { position: [0, 0], color: hexColorToRgb('#9670c2') },
       { position: [1, 0], color: hexColorToRgb('#358fe8') },
-      { position: [0, 1], color: hexColorToRgb('#ffffff') },
+      { position: [0, 1], color: hexColorToRgb('#358fe8') },
       { position: [1, 1], color: hexColorToRgb('#9670c2') },
-      { position: [0.5, 0.5], color: hexColorToRgb('#358fe8') },
+      { position: [0.5, 0.5], color: hexColorToRgb('#ffffff') },
     ]
 
     const drawAnimatedBackground = regl({
