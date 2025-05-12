@@ -3,7 +3,6 @@ import * as dat from 'dat.gui'
 import { nextPowerOf2, resizeRegl, hexColorToRgb } from './utils'
 import { createDrawSpheresCommand } from './commands/spheres'
 import { createDrawDepthCommand } from './commands/spheres'
-import { createDrawDepthDebugCommand } from './commands/spheres'
 import { createDrawAnimatedBackgroundCommand } from './commands/background'
 import { createBlurPassCommand } from './commands/blur'
 import { createDOFCompositeCommand } from './commands/dofComposite'
@@ -87,11 +86,11 @@ const regl = createREGL({
     const dofComposite = createDOFCompositeCommand(regl)
 
     const colorPoints = [
-      { position: [0, 0], color: hexColorToRgb('#9670c2') },
-      { position: [1, 0], color: hexColorToRgb('#358fe8') },
-      { position: [0, 1], color: hexColorToRgb('#358fe8') },
-      { position: [1, 1], color: hexColorToRgb('#9670c2') },
-      { position: [0.5, 0.5], color: hexColorToRgb('#c9f0fa') },
+      { position: [0, 0], color: hexColorToRgb('#0081ff') },
+      { position: [1, 0], color: hexColorToRgb('#b780ff') },
+      { position: [0, 1], color: hexColorToRgb('#e6baff') },
+      { position: [1, 1], color: hexColorToRgb('#0081ff') },
+      { position: [0.5, 0.5], color: hexColorToRgb('#e6baff') },
     ]
 
     const drawAnimatedBackground = createDrawAnimatedBackgroundCommand(regl, colorPoints)
