@@ -24,6 +24,7 @@
     "icosphere": "^1.0.0",
     "loop-subdivide": "^1.0.0",
     "mouse-change": "^1.4.0",
+    "primitive-icosphere": "^1.0.2",
     "primitive-sphere": "^3.0.0",
     "regl": "^2.1.1",
     "resl": "^1.0.3",

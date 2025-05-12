@@ -23,7 +23,7 @@ uniform float animSpeed;
 
 void main() {
     vec3 seed = aPosition * noiseFrequency;
-    seed.z += iTime * 0.002 + instanceIndex * 1000.;
+    seed.z += iTime * 0.0003 + instanceIndex * 1000.;
 
     vec3 pos = aPosition;
     pos += aNormal * snoise(seed) * noiseScale;

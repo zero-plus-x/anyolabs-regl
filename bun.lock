@@ -14,6 +14,7 @@
         "icosphere": "^1.0.0",
         "loop-subdivide": "^1.0.0",
         "mouse-change": "^1.4.0",
+        "primitive-icosphere": "^1.0.2",
         "primitive-sphere": "^3.0.0",
         "regl": "^2.1.1",
         "resl": "^1.0.3",
@@ -153,6 +154,8 @@
 
     "gl-mat4": ["gl-mat4@1.2.0", "", {}, "sha512-sT5C0pwB1/e9G9AvAoLsoaJtbMGjfd/jfxo8jMCKqYYEnjZuFvqV5rehqar0538EmssjdDeiEWnKyBSTw7quoA=="],
 
+    "gl-vec2": ["gl-vec2@1.3.0", "", {}, "sha512-YiqaAuNsheWmUV0Sa8k94kBB0D6RWjwZztyO+trEYS8KzJ6OQB/4686gdrf59wld4hHFIvaxynO3nRxpk1Ij/A=="],
+
     "gl-vec3": ["gl-vec3@1.1.3", "", {}, "sha512-jduKUqT0SGH02l8Yl+mV1yVsDfYgQAJyXGxkJQGyxPLHRiW25DwVIRPt6uvhrEMHftJfqhqKthRcyZqNEl9Xdw=="],
 
     "grid-mesh": ["grid-mesh@0.1.0", "", { "dependencies": { "dup": "~0.0.0" } }, "sha512-/EmfZb891d832JEDHnC+OFjRCYBaP3kLoxI50I0U+X+6MiDUlWb/3k4Nksni5/6kwNHxhRv0uyCt2QifU7mO4w=="],
@@ -180,6 +183,8 @@
     "picomatch": ["picomatch@4.0.2", "", {}, "sha512-M7BAV6Rlcy5u+m6oPhAPFgJTzAioX/6B0DxyvDlo9l8+T3nLKbrczg2WLUyzd45L8RqfUMyGPzekbMvX2Ldkwg=="],
 
     "postcss": ["postcss@8.5.3", "", { "dependencies": { "nanoid": "^3.3.8", "picocolors": "^1.1.1", "source-map-js": "^1.2.1" } }, "sha512-dle9A3yYxlBSrt8Fu+IpjGT8SY8hN0mlaA6GY8t0P5PjIOZemULz/E2Bnm/2dcUOena75OTNkHI76uZBNUUq3A=="],
+
+    "primitive-icosphere": ["primitive-icosphere@1.0.2", "", { "dependencies": { "gl-vec2": "^1.0.0", "gl-vec3": "^1.0.3", "icosphere": "^1.0.0" } }, "sha512-vGTVSGN/NVi5e3x3bV4aUn/jKWIez/lp/oa1JO3XlctYIaalyXWQIWLD5C7HuQUXlsHJllw1rSWqhZjB2lwMAQ=="],
 
     "primitive-sphere": ["primitive-sphere@3.0.0", "", { "dependencies": { "gl-mat4": "^1.1.4", "gl-vec3": "^1.0.3" } }, "sha512-qWdk0LMwcO45plX2Y00IRFTlEzvwXEzpLCMV2CGdO13s6iSY7wmoftOlYabBZ1Ng3/3IOcADYpLdgD7+si82+g=="],
 

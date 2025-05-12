@@ -3,8 +3,8 @@ import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
 import vec3 from 'gl-vec3'
 import { default as resl } from 'resl'
-import { default as icosphereGen } from 'icosphere'
-import { default as sphereGen } from 'primitive-sphere'
+import createIcosphere from 'primitive-icosphere'
+import createSphere from 'primitive-sphere'
 import normals from 'angle-normals'
 import mc from 'mouse-change'
 import sphereVert from './shaders/glass.vert'
@@ -13,8 +13,8 @@ import bgFrag from './shaders/bg.frag'
 import bgVert from './shaders/bg.vert'
 import * as dat from 'dat.gui';
 
-const sphere = icosphereGen(5)
-const background = sphereGen(20, { segments: 32 })
+const sphere = createIcosphere(1, { subdivisions: 5 })
+const background = createSphere(20, { segments: 32 })
 const mouse = mc()
 
 const regl = initRegl()
@@ -136,9 +136,9 @@ const drawSphere = regl({
 })
 
 const spherePositions = [
-  [2, -5, 0],
-  [-12, 6, 0],
-  [12, 0, 0],
+  [7, 0, -2],
+  // [-12, 6, 0],
+  // [12, 0, 0],
 ]
 
 const sphereInstances = spherePositions.map((position, index) => ({
@@ -147,11 +147,19 @@ const sphereInstances = spherePositions.map((position, index) => ({
   instanceIndex: index,
 }))
 
+const sphereData = {
+  positions: [7, 0, -2],
+  fbo: regl.framebufferCube(CUBE_MAP_SIZE),
+  instanceIndex: 0,
+}
+
 resl({
   manifest: {
     palette: {
       type: 'image',
-      src: 'assets/palette.png'
+      // Nice dark one
+      // src: 'assets/pal6.png'
+      src: 'assets/pal_light1.png'
     },
   },
 
@@ -189,17 +197,33 @@ resl({
       },
     })
     
-    const settings = {
+    // Dark settings
+    // const settings = {
+    //   "sphere": {
+    //     "reflectionRoughness": 0.07,
+    //     "refractionRoughness": 0.07,
+    //     "refractiveIndex": 2.02,
+    //     "noiseFrequency": 0.195,
+    //     "noiseScale": 1.3,
+    //     "animSpeed": 0.05
+    //   },
+    //   "bg": {
+    //     "animSpeed": 0.1
+    //   }
+    // }
+
+    // Light settings
+    const settings =     {
       "sphere": {
         "reflectionRoughness": 0.07,
         "refractionRoughness": 0.07,
         "refractiveIndex": 2.02,
-        "noiseFrequency": 0.195,
-        "noiseScale": 1.3,
-        "animSpeed": 0.2
+        "noiseFrequency": 0.46530000000000005,
+        "noiseScale": 0.2,
+        "animSpeed": 0.05
       },
       "bg": {
-        "animSpeed": 0.15000000000000002
+        "animSpeed": 0.1
       }
     }
 
@@ -223,12 +247,10 @@ resl({
     regl.frame(({ drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
 
       // render sphere cube map
-      for (const instance of sphereInstances) {
-        setupCube({ fbo: instance.fbo, center: instance.position }, () => {
-          regl.clear({ color: [0.2, 0.2, 0.2, 1], depth: 1 })
-          drawBackground({ position: [0, 0, 0], ...settings.bg })
-        })
-      }
+      setupCube({ fbo: sphereData.fbo, center: sphereData.positions }, () => {
+        regl.clear({ color: [0.2, 0.2, 0.2, 1], depth: 1 })
+        drawBackground({ position: [0, 0, 0], ...settings.bg })
+      })
 
       const theta = 2.0 * Math.PI * (pixelRatio * mouse.x / drawingBufferWidth - 0.5)
       setupCamera({
@@ -247,15 +269,14 @@ resl({
           position: [0, 0, 0],
           ...settings.bg
         })
-        drawSphere(sphereInstances.map((instance, instanceIndex) => {
-          const y = Math.sin(tick * 0.001 * settings.sphere.animSpeed + instanceIndex * 400) * 10
-          return ({
-            position: [instance.position[0], y, instance.position[2]],
-            envMap: instance.fbo,
-            instanceIndex,
+        drawSphere([
+          {
+            position: sphereData.positions,
+            envMap: sphereData.fbo,
+            instanceIndex: sphereData.instanceIndex,
             ...settings.sphere
-          })
-        }))
+          }
+        ])
       })
     })
   },
