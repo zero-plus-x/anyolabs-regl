@@ -2,7 +2,10 @@ import createREGL from 'regl'
 import * as dat from 'dat.gui'
 import { nextPowerOf2, resizeRegl, hexColorToRgb } from './utils'
 import { createDrawSpheresCommand } from './commands/spheres'
+import { createDrawDepthCommand } from './commands/spheres'
 import { createDrawAnimatedBackgroundCommand } from './commands/background'
+import { createBlurPassCommand } from './commands/blur'
+import { createDOFCompositeCommand } from './commands/dofComposite'
 import { TOTAL, OFFSET as offset } from './commands/constants'
 import { frame } from './commands/frame'
 
@@ -65,7 +68,6 @@ const regl = createREGL({
     gui.add(buttons, 'Copy settings')
 
     /* Setup REGL */
-    resizeRegl(canvas, regl)
 
     const offsetBuffer = regl.buffer({
       length: TOTAL * 3 * 4,
@@ -74,6 +76,10 @@ const regl = createREGL({
     })
 
     const drawSpheres = createDrawSpheresCommand(regl, offsetBuffer)
+    const drawDepth = createDrawDepthCommand(regl, offsetBuffer)
+
+    const blurPass = createBlurPassCommand(regl)
+    const dofComposite = createDOFCompositeCommand(regl)
 
     const colorPoints = [
       { position: [0, 0], color: hexColorToRgb('#9670c2') },
@@ -95,14 +101,39 @@ const regl = createREGL({
         type: 'uint8',
       }),
     })
+    const depthFbo = regl.framebuffer({
+      color: regl.texture({
+        width,
+        height,
+        format: 'rgba',
+        type: 'uint8'
+      }),
+      depth: true
+    });
+
+    const sceneFbo = regl.framebuffer({
+      color: regl.texture({ width, height, format: 'rgba' }),
+    })
+    const blurFbo = regl.framebuffer({
+      color: regl.texture({ width, height, format: 'rgba' }),
+    })
+
+    resizeRegl(canvas, regl, [bgFbo, depthFbo, sceneFbo, blurFbo])
 
     regl.frame(
       frame(regl, {
+        canvas,
         bgFbo,
+        depthFbo,
+        sceneFbo,
+        blurFbo,
         offsetBuffer,
         offset,
         drawAnimatedBackground,
         drawSpheres,
+        drawDepth,
+        blurPass,
+        dofComposite,
         settings,
       }),
     )

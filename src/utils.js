@@ -13,7 +13,7 @@ export function nextPowerOf2(n) {
   return 2 ** Math.ceil(Math.log2(n))
 }
 
-export function resizeRegl(canvas, regl, updateFBO) {
+export function resizeRegl(canvas, regl, fbos) {
   const resizeObserver = new ResizeObserver(() => {
     const width = canvas.clientWidth
     const height = canvas.clientHeight
@@ -24,6 +24,10 @@ export function resizeRegl(canvas, regl, updateFBO) {
 
       // Notify regl about the new size (optional for internal buffers)
       regl._gl.viewport(0, 0, width, height)
+
+      fbos.forEach((fbo) => {
+        fbo.resize(width, height)
+      })
     }
   })
 
@@ -76,7 +80,5 @@ export function generateHueVariants(baseHSV, count, hueOffset = 30, seededRand =
 
 export function hexColorToRgb(hex) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
-  return result
-    ? [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255]
-    : null
+  return result ? [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255] : null
 }
