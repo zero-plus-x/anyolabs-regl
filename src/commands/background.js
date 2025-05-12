@@ -1,6 +1,6 @@
 export const createDrawAnimatedBackgroundCommand = (regl, colorPoints) =>
   regl({
-    vert: `
+    vert: /*glsl*/ `
           precision mediump float;
           attribute vec2 position;
           varying vec2 v_uv;
@@ -23,7 +23,7 @@ export const createDrawAnimatedBackgroundCommand = (regl, colorPoints) =>
   
             for (int i = 0; i < 5; i++) {
               float d = distance(v_uv, u_positions[i] + 0.5 * vec2(sin(u_time + float(i)), cos(u_time + float(i))));
-              float w = exp(-5.0 * d * d); // Gaussian-like falloff
+              float w = exp(-10.0 * d * d); // Gaussian-like falloff
               color += u_colors[i] * w;
               totalWeight += w;
             }

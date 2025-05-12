@@ -91,7 +91,7 @@ const regl = createREGL({
       { position: [1, 0], color: hexColorToRgb('#358fe8') },
       { position: [0, 1], color: hexColorToRgb('#358fe8') },
       { position: [1, 1], color: hexColorToRgb('#9670c2') },
-      { position: [0.5, 0.5], color: hexColorToRgb('#ffffff') },
+      { position: [0.5, 0.5], color: hexColorToRgb('#c9f0fa') },
     ]
 
     const drawAnimatedBackground = createDrawAnimatedBackgroundCommand(regl, colorPoints)
@@ -192,7 +192,7 @@ const regl = createREGL({
               sharpTex: sceneFbo.color[0],
               blurTex: blurFbo.color[0],
               depthTex: depthFbo.color[0], // must be manually rendered
-              focus: 0.06, 
+              focus: 0.06,
               focusRange: 0.1,
               aperture: 32.0,
               tintColor: [0, 0.7, 1],

@@ -45,9 +45,10 @@ void main() {
     vec3 color = mix(refractionColor, reflectionColor, fresnel);
 
     float sheenIntensity = 0.5 + 0.5 * sin(iTime * 0.0001);
+    sheenIntensity = clamp(sheenIntensity, 0.0, 0.1);
 
-    float sheenFactor = sheen(N, V, sheenIntensity, 4.0); // play with intensity and power
-    vec3 sheenColor = vec3(0.1) * sheenFactor;
+    float sheenFactor = sheen(N, V, sheenIntensity, 0.5); // play with intensity and power
+    vec3 sheenColor = vec3(0.1, 0.3, 0.5) * sheenFactor;
 
     color += sheenColor;
 

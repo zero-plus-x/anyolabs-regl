@@ -14,7 +14,7 @@ export const createDrawSpheresCommand = (regl, offsetBuffer) =>
 
     attributes: {
       position: sphere.positions,
-      normal: normals(sphere.cells, sphere.positions),
+      normal: sphere.normals,
       offset: {
         buffer: offsetBuffer,
         divisor: 1,
