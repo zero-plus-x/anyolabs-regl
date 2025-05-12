@@ -192,8 +192,11 @@ const regl = createREGL({
               sharpTex: sceneFbo.color[0],
               blurTex: blurFbo.color[0],
               depthTex: depthFbo.color[0], // must be manually rendered
-              focus: 0.05, // animate
-              aperture: 12.0,
+              focus: 0.06, 
+              focusRange: 0.1,
+              aperture: 32.0,
+              tintColor: [0, 0.7, 1],
+              tintStrength: 0.05,
             })
           })
         },
