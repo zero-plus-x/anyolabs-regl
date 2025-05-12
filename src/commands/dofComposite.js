@@ -35,17 +35,17 @@ export const createDOFCompositeCommand = (regl) =>
         
         float linearDepth = texture2D(u_depth, v_uv).r;
         
-        float tintAmount = 0.0;
+        // float tintAmount = 0.0;
         float coc = 0.0;
         if (linearDepth < nearEdge) {
-          tintAmount = (nearEdge - linearDepth) * u_aperture;
+          // tintAmount = (nearEdge - linearDepth) * u_aperture;
           coc = (nearEdge - linearDepth) * u_aperture;
         } else if (linearDepth > farEdge) {
-          tintAmount = (linearDepth - farEdge) * u_aperture;
+          // tintAmount = (linearDepth - farEdge) * u_aperture;
           coc = (linearDepth - farEdge) * u_aperture;
         }
 
-        tintAmount = clamp(tintAmount * u_tintStrength, 0.0, 1.0);
+        // tintAmount = clamp(tintAmount * u_tintStrength, 0.0, 1.0);
         
         // clamp final blur
         coc = clamp(coc, 0.0, 1.0);
@@ -58,9 +58,9 @@ export const createDOFCompositeCommand = (regl) =>
 
             vec3 blurBase = texture2D(u_colorBlur, v_uv + offset).rgb;
 
-            if (hasGeometry) {
-              blurBase = mix(blurBase, u_tintColor, tintAmount);
-            }
+            // if (hasGeometry) {
+            //   blurBase = mix(blurBase, u_tintColor, tintAmount);
+            // }
 
             blur += blurBase;
             total += 1.0;
