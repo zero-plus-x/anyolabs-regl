@@ -121,7 +121,7 @@ function hsvToRgb({ h, s, v }) {
   else if (h < 180) [r, g, b] = [0, c, x]
   else if (h < 240) [r, g, b] = [0, x, c]
   else if (h < 300) [r, g, b] = [x, 0, c]
-  else[r, g, b] = [c, 0, x]
+  else [r, g, b] = [c, 0, x]
 
   return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)]
 }
@@ -265,6 +265,72 @@ resl({
       depth: true,
     })
 
+    const colorPoints = [
+      { position: [0.2, 0.3], color: [1.0, 0.0, 0.0] },
+      { position: [0.8, 0.3], color: [0.0, 1.0, 0.0] },
+      { position: [0.5, 0.8], color: [0.0, 0.0, 1.0] },
+    ]
+
+    const drawAnimatedBackground = regl({
+      vert: `
+        precision mediump float;
+        attribute vec2 position;
+        varying vec2 v_uv;
+        void main() {
+          v_uv = 0.5 * (position + 1.0);
+          gl_Position = vec4(position, 0, 1);
+        }
+      `,
+      frag: `
+        precision mediump float;
+
+        uniform vec2 u_positions[3];
+        uniform vec3 u_colors[3];
+        uniform float u_time;
+        varying vec2 v_uv;
+
+        void main() {
+          vec3 color = vec3(0.0);
+          float totalWeight = 0.0;
+
+          for (int i = 0; i < 3; i++) {
+            float d = distance(v_uv, u_positions[i] + 0.01 * vec2(sin(u_time + float(i)), cos(u_time + float(i))));
+            float w = 1.0 / (d + 0.001);  // avoid divide by zero
+            color += u_colors[i] * w;
+            totalWeight += w;
+          }
+
+          color /= totalWeight;
+          gl_FragColor = vec4(color, 1.0);
+      }`,
+      attributes: {
+        position: [
+          [-1, -1],
+          [1, -1],
+          [-1, 1],
+          [-1, 1],
+          [1, -1],
+          [1, 1],
+        ],
+      },
+      uniforms: {
+        'u_positions[0]': () => colorPoints[0].position,
+        'u_positions[1]': () => colorPoints[1].position,
+        'u_positions[2]': () => colorPoints[2].position,
+
+        'u_colors[0]': () => colorPoints[0].color,
+        'u_colors[1]': () => colorPoints[1].color,
+        'u_colors[2]': () => colorPoints[2].color,
+
+        u_time: ({ time }) => time,
+      },
+      count: 6,
+      framebuffer: regl.prop('fbo'),
+      depth: {
+        enable: false,
+      },
+    })
+
     const backgroundConf = {
       attributes: {
         position: [
@@ -315,7 +381,7 @@ resl({
     }
     const drawBackground = regl({
       ...backgroundConf,
-      framebuffer: regl.prop('fbo')
+      framebuffer: regl.prop('fbo'),
     })
 
     // Dark settings
@@ -369,10 +435,8 @@ resl({
       // render sphere cube map
       setupCube({ fbo: sphereFbo, center: [0, 0, 0] }, () => {
         regl.clear({ color: [0.2, 0.2, 0.2, 1], depth: 1 })
-        drawBackground({
+        drawAnimatedBackground({
           fbo: null,
-          position: [0, 0, 0],
-          ...settings.bg,
         })
       })
 
@@ -387,19 +451,11 @@ resl({
             color: [1, 1, 1, 1],
             depth: 1,
           })
-          drawBackground({
-            fbo: bgFbo,
-            position: [0, 0, 0],
-            ...settings.bg,
-          })
-          regl.clear({
-            color: [1, 1, 1, 1],
-            depth: 1,
-          })
-          drawBackground({
+          drawAnimatedBackground({
             fbo: null,
-            position: [0, 0, 0],
-            ...settings.bg
+          })
+          drawAnimatedBackground({
+            fbo: bgFbo,
           })
 
           let newOffset = [...offset.map((p) => [...p])]
