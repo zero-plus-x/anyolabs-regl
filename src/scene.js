@@ -1,8 +1,8 @@
-import { default as initRegl } from 'regl'
+import createREGL from 'regl'
 import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
 import vec3 from 'gl-vec3'
-import { default as resl } from 'resl'
+import resl from 'resl'
 import createIcosphere from 'primitive-icosphere'
 import createSphere from 'primitive-sphere'
 import normals from 'angle-normals'
@@ -17,7 +17,7 @@ const sphere = createIcosphere(1, { subdivisions: 5 })
 const background = createSphere(20, { segments: 32 })
 const mouse = mc()
 
-const regl = initRegl()
+const regl = createREGL()
 const CUBE_MAP_SIZE = 512
 
 const CUBEMAP_SIDES = [
