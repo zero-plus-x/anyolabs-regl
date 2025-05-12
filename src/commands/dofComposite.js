@@ -52,15 +52,16 @@ export const createDOFCompositeCommand = (regl) =>
         vec3 sharp = texture2D(u_colorSharp, v_uv).rgb;
         vec3 blur = vec3(0.0);
         float total = 0.0;
-        for (float x = -4.0; x <= 4.0; x++) {
-          for (float y = -4.0; y <= 4.0; y++) {
+        for (float x = -3.0; x <= 3.0; x++) {
+          for (float y = -3.0; y <= 3.0; y++) {
             vec2 offset = vec2(x, y) * 0.001 * coc; // scale by coc
 
             vec3 blurBase = texture2D(u_colorBlur, v_uv + offset).rgb;
-
-            // if (hasGeometry) {
-            //   blurBase = mix(blurBase, u_tintColor, tintAmount);
-            // }
+            
+            if (hasGeometry) {
+              vec3 bgColor = texture2D(u_colorSharp, v_uv + offset).rgb;
+              blurBase = mix(blurBase, mix(bgColor, u_tintColor, 0.1), coc);
+            }
 
             blur += blurBase;
             total += 1.0;
