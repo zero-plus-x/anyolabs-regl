@@ -3,7 +3,6 @@ import mat4 from 'gl-mat4'
 import mat3 from 'gl-mat3'
 import vec3 from 'gl-vec3'
 import resl from 'resl'
-import createIcosphere from 'primitive-icosphere'
 import createSphere from 'primitive-sphere'
 import normals from 'angle-normals'
 import mc from 'mouse-change'
@@ -14,7 +13,6 @@ import bgVert from './shaders/bg.vert'
 import * as dat from 'dat.gui';
 
 const sphere = createSphere(1, { segments: 128 })
-console.log(sphere)
 const background = createSphere(20, { segments: 32 })
 const mouse = mc()
 
@@ -93,31 +91,48 @@ const setupCamera = regl({
   }
 }).bind(cameraProps)
 
-const N = 15
+const N = 3
+const TOTAL = N * N * N
+
+function generateCubeGrid(N) {
+  const offset = (N - 1) / 2;
+  const grid = [];
+
+  for (let x = 0; x < N; x++) {
+    for (let y = 0; y < N; y++) {
+      for (let z = 0; z < N; z++) {
+        grid.push([x - offset, y - offset, z - offset]);
+      }
+    }
+  }
+  const scale = 5
+  return grid.map(p => [p[0] * scale, p[1] * scale, p[2] * scale]);
+}
+
+let offset = generateCubeGrid(N)
+
+console.log(offset)
+
+const offsetBuffer = regl.buffer({
+  length: TOTAL * 3 * 4,
+  type: 'float',
+  usage: 'dynamic'
+})
 
 const drawSphere = regl({
   vert: sphereVert,
   frag: sphereFrag,
 
   attributes: {
-    position: sphere.positions.map((p) => [
-      4 * p[0],
-      4 * p[1],
-      4 * p[2]
-    ]),
+    position: sphere.positions,
     normal: normals(sphere.cells, sphere.positions),
     offset: {
-      buffer: regl.buffer(
-        Array(N * N).fill().map((_, i) => {
-          var x = (-1 + 2 * Math.floor(i / N) / N) * 120
-          var z = (-1 + 2 * (i % N) / N) * 120
-          return [x, 0.0, z]
-        })),
+      buffer: offsetBuffer,
       divisor: 1
     },
     color: {
       buffer: regl.buffer(
-        Array(N * N).fill().map((_, i) => {
+        Array(TOTAL).fill().map((_, i) => {
           var x = Math.floor(i / N) / (N - 1)
           var z = (i % N) / (N - 1)
           return [
@@ -130,7 +145,7 @@ const drawSphere = regl({
     },
     angle: {
       buffer: regl.buffer(
-        Array(N * N).fill().map((_, i) => {
+        Array(TOTAL).fill().map((_, i) => {
           var x = Math.floor(i / N) / (N - 1)
           var z = (i % N) / (N - 1)
           return [x, z]
@@ -139,7 +154,7 @@ const drawSphere = regl({
     }
   },
   elements: sphere.cells,
-  instances: N * N,
+  instances: TOTAL,
   uniforms: {
     modelMatrix: (context, { position }) => mat4.translate([], mat4.identity([]), position),
     viewMatrix: regl.context('viewMatrix'),
@@ -163,27 +178,10 @@ const drawSphere = regl({
     noiseFrequency: regl.prop('noiseFrequency'),
     iTime: ({ tick }) => tick,
     animSpeed: regl.prop('animSpeed'),
-    instanceIndex: regl.prop('instanceIndex'),
   }
 })
 
-const spherePositions = [
-  [7, 0, -2],
-  // [-12, 6, 0],
-  // [12, 0, 0],
-]
-
-const sphereInstances = spherePositions.map((position, index) => ({
-  position,
-  fbo: regl.framebufferCube(CUBE_MAP_SIZE),
-  instanceIndex: index,
-}))
-
-const sphereData = {
-  positions: [7, 0, -2],
-  fbo: regl.framebufferCube(CUBE_MAP_SIZE),
-  instanceIndex: 0,
-}
+const sphereFbo = regl.framebufferCube(CUBE_MAP_SIZE)
 
 resl({
   manifest: {
@@ -251,7 +249,7 @@ resl({
         "refractionRoughness": 0.07,
         "refractiveIndex": 2.02,
         "noiseFrequency": 0.46530000000000005,
-        "noiseScale": 0.2,
+        "noiseScale": 0.03,
         "animSpeed": 0.05
       },
       "bg": {
@@ -279,17 +277,16 @@ resl({
     regl.frame(({ drawingBufferWidth, drawingBufferHeight, pixelRatio }) => {
 
       // render sphere cube map
-      setupCube({ fbo: sphereData.fbo, center: sphereData.positions }, () => {
+      setupCube({ fbo: sphereFbo, center: [0,0,0] }, () => {
         regl.clear({ color: [0.2, 0.2, 0.2, 1], depth: 1 })
         drawBackground({ position: [0, 0, 0], ...settings.bg })
       })
 
-      const theta = 2.0 * Math.PI * (pixelRatio * mouse.x / drawingBufferWidth - 0.5)
       setupCamera({
         cameraPosition: [
-          9,
-          -11,
-          -17
+          3.5,
+          -8.5,
+          -10
         ],
         target: [0, 0, 0]
       }, ({ tick }) => {
@@ -301,11 +298,13 @@ resl({
           position: [0, 0, 0],
           ...settings.bg
         })
+
+        offsetBuffer.subdata(offset);
+
         drawSphere([
           {
-            position: sphereData.positions,
-            envMap: sphereData.fbo,
-            instanceIndex: sphereData.instanceIndex,
+            position: [0, 0, 0],
+            envMap: sphereFbo,
             ...settings.sphere
           }
         ])

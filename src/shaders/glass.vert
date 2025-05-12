@@ -21,7 +21,6 @@ varying vec3 vNormal;
 varying vec3 vColor;
 
 uniform float iTime;
-uniform float instanceIndex;
 
 uniform float noiseFrequency;
 uniform float noiseScale;
@@ -29,7 +28,7 @@ uniform float animSpeed;
 
 void main() {
     vec3 seed = position * noiseFrequency;
-    seed.z += iTime * 0.0003 + instanceIndex * 1000.;
+    seed.z += iTime * 0.0003 + 0.0001 * 1000.;
 
     vec3 pos = position + normal * snoise(seed) * noiseScale;
 
