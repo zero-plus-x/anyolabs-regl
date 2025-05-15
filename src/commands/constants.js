@@ -1,6 +1,6 @@
 import { createSeededRandom, generateXYGridWithRandomZ, generateHueVariants } from '../utils'
 
-export const RAND = createSeededRandom(13)
+export const RAND = createSeededRandom(26)
 
 export const N = 6
 export const TOTAL = N * N

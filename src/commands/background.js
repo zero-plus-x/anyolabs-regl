@@ -12,8 +12,8 @@ export const createDrawAnimatedBackgroundCommand = (regl, colorPoints) =>
     frag: /* glsl */ `
           precision mediump float;
   
-          uniform vec2 u_positions[5];
-          uniform vec3 u_colors[5];
+          uniform vec2 u_positions[9];
+          uniform vec3 u_colors[9];
           uniform float u_time;
           varying vec2 v_uv;
   
@@ -21,8 +21,8 @@ export const createDrawAnimatedBackgroundCommand = (regl, colorPoints) =>
             vec3 color = vec3(0.0);
             float totalWeight = 0.0;
   
-            for (int i = 0; i < 5; i++) {
-              float d = distance(v_uv, u_positions[i] + 0.5 * vec2(sin(u_time + float(i)), cos(u_time + float(i))));
+            for (int i = 0; i < 8; i++) {
+              float d = distance(v_uv, u_positions[i] + 0.15 * vec2(sin(u_time + float(i)), cos(u_time + float(i))));
               float w = exp(-7.5 * d * d); // Gaussian-like falloff
               color += u_colors[i] * w;
               totalWeight += w;
@@ -47,14 +47,22 @@ export const createDrawAnimatedBackgroundCommand = (regl, colorPoints) =>
       'u_positions[2]': () => colorPoints[2].position,
       'u_positions[3]': () => colorPoints[3].position,
       'u_positions[4]': () => colorPoints[4].position,
+      'u_positions[5]': () => colorPoints[5].position,
+      'u_positions[6]': () => colorPoints[6].position,
+      'u_positions[7]': () => colorPoints[7].position,
+      'u_positions[8]': () => colorPoints[8].position,
 
       'u_colors[0]': () => colorPoints[0].color,
       'u_colors[1]': () => colorPoints[1].color,
       'u_colors[2]': () => colorPoints[2].color,
       'u_colors[3]': () => colorPoints[3].color,
       'u_colors[4]': () => colorPoints[4].color,
+      'u_colors[5]': () => colorPoints[5].color,
+      'u_colors[6]': () => colorPoints[6].color,
+      'u_colors[7]': () => colorPoints[7].color,
+      'u_colors[8]': () => colorPoints[8].color,
 
-      u_time: ({ time }) => time * 0.1,
+      u_time: ({ time }) => time * 1,
     },
     count: 6,
     framebuffer: regl.prop('fbo'),

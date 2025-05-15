@@ -1,5 +1,4 @@
 import createREGL from 'regl'
-import * as dat from 'dat.gui'
 import { nextPowerOf2, resizeRegl, hexColorToRgb } from './utils'
 import { createDrawSpheresCommand } from './commands/spheres'
 import { createDrawDepthCommand } from './commands/spheres'
@@ -19,22 +18,6 @@ const regl = createREGL({
       return
     }
 
-    /* Setup GUI */
-    // Dark settings
-    // const settings = {
-    //   "sphere": {
-    //     "reflectionRoughness": 0.07,
-    //     "refractionRoughness": 0.07,
-    //     "refractiveIndex": 2.02,
-    //     "noiseFrequency": 0.195,
-    //     "noiseScale": 1.3,
-    //     "animSpeed": 0.05
-    //   },
-    //   "bg": {
-    //     "animSpeed": 0.1
-    //   }
-    // }
-
     // Light settings
     const settings = {
       sphere: {
@@ -50,23 +33,6 @@ const regl = createREGL({
       },
     }
 
-    const buttons = {}
-    buttons['Copy settings'] = () => {
-      navigator.clipboard.writeText(JSON.stringify(settings, null, 2))
-    }
-
-    const gui = new dat.GUI()
-
-    // gui.add(settings.sphere, 'refractionRoughness').min(0.01).max(1).step(0.01);
-    // gui.add(settings.sphere, 'refractiveIndex').min(1).max(2.33).step(0.01);
-    // gui.add(settings.sphere, 'reflectionRoughness').min(0.01).max(1).step(0.01);
-    gui.add(settings.sphere, 'noiseFrequency').min(0.0025).max(1).step(0.0001)
-    gui.add(settings.sphere, 'noiseScale').min(0.1).max(2).step(0.1)
-    gui.add(settings.sphere, 'animSpeed').min(0.025).max(1).step(0.05).name('Spheres speed')
-    gui.add(settings.bg, 'animSpeed').min(0.025).max(1).step(0.05).name('Bg speed')
-
-    gui.add(buttons, 'Copy settings')
-
     /* Setup REGL */
 
     const setupCamera = createSetupCamera({
@@ -74,7 +40,7 @@ const regl = createREGL({
     })
 
     const offsetBuffer = regl.buffer({
-      length: TOTAL * 3 * 4,
+      length: TOTAL * 3 * 4,    
       type: 'float',
       usage: 'dynamic',
     })
@@ -86,11 +52,17 @@ const regl = createREGL({
     const dofComposite = createDOFCompositeCommand(regl)
 
     const colorPoints = [
-      { position: [0, 0], color: hexColorToRgb('#0081ff') },
-      { position: [1, 0], color: hexColorToRgb('#b780ff') },
-      { position: [0, 1], color: hexColorToRgb('#e6baff') },
+      { position: [0, 0], color: hexColorToRgb('#7300ff') },
+      { position: [0.5, 0], color: hexColorToRgb('#0099FF') },
+      { position: [1, 0], color: hexColorToRgb('#6737D8') },
+
+      { position: [0, 0.5], color: hexColorToRgb('#0081ff') },
+      { position: [0.5, 0.5], color: hexColorToRgb('#9F28E4')},
+      { position: [1, 0.5], color: hexColorToRgb('#65E7CB') },
+
+      { position: [0, 1], color: hexColorToRgb('#7B00F6')},
+      { position: [0.5, 1], color: hexColorToRgb('#039BF2') },
       { position: [1, 1], color: hexColorToRgb('#0081ff') },
-      { position: [0.5, 0.5], color: hexColorToRgb('#e6baff') },
     ]
 
     const drawAnimatedBackground = createDrawAnimatedBackgroundCommand(regl, colorPoints)
@@ -144,7 +116,7 @@ const regl = createREGL({
             drawAnimatedBackground({ fbo: sceneFbo })
 
             // background to envMap texture
-            drawAnimatedBackground({ fbo: bgFbo })
+            // drawAnimatedBackground({ fbo: bgFbo })
 
             // animate sphere Z positions
             const newOffset = offset.map(([x, y, baseZ], i) => {
@@ -153,14 +125,14 @@ const regl = createREGL({
             })
             offsetBuffer.subdata(newOffset)
 
-            drawSpheres([
-              {
-                position: [0, 0, 0],
-                envMap: bgFbo,
-                fbo: sceneFbo,
-                ...settings.sphere,
-              },
-            ])
+            // drawSpheres([
+            //   {
+            //     position: [0, 0, 0],
+            //     envMap: bgFbo,
+            //     fbo: sceneFbo,
+            //     ...settings.sphere,
+            //   },
+            // ])
           })
 
           // 1. Render scene to FBO (done earlier)
@@ -174,15 +146,15 @@ const regl = createREGL({
 
           // 2. Render depth
 
-          regl({ framebuffer: depthFbo })(() => {
-            regl.clear({ color: [1, 1, 1, 1], depth: 1 }) // clear depth texture!
-            drawDepth({
-              position: [0, 0, 0],
-              envMap: bgFbo,
-              ...settings.sphere,
-              fbo: depthFbo,
-            })
-          })
+          // regl({ framebuffer: depthFbo })(() => {
+          //   regl.clear({ color: [1, 1, 1, 1], depth: 1 }) // clear depth texture!
+          //   drawDepth({
+          //     position: [0, 0, 0],
+          //     envMap: bgFbo,
+          //     ...settings.sphere,
+          //     fbo: depthFbo,
+          //   })
+          // })
 
           // 3. Composite with DOF
           regl({ framebuffer: null })(() => {
@@ -203,3 +175,6 @@ const regl = createREGL({
     )
   },
 })
+
+import FPSMeter from 'fps-m';
+(new FPSMeter({ui: true})).start();
