@@ -52,13 +52,13 @@ const regl = createREGL({
     const dofComposite = createDOFCompositeCommand(regl)
 
     const colorPoints = [
-      { position: [0, 0], color: hexColorToRgb('#7300ff') },
+      { position: [0, 0], color: hexColorToRgb('#BB00FF') },
       { position: [0.5, 0], color: hexColorToRgb('#0099FF') },
-      { position: [1, 0], color: hexColorToRgb('#6737D8') },
+      { position: [1, 0], color: hexColorToRgb('#7821E9') },
 
       { position: [0, 0.5], color: hexColorToRgb('#0081ff') },
       { position: [0.5, 0.5], color: hexColorToRgb('#9F28E4')},
-      { position: [1, 0.5], color: hexColorToRgb('#65E7CB') },
+      { position: [1, 0.5], color: hexColorToRgb('#30CFE4') },
 
       { position: [0, 1], color: hexColorToRgb('#7B00F6')},
       { position: [0.5, 1], color: hexColorToRgb('#039BF2') },
@@ -116,7 +116,7 @@ const regl = createREGL({
             drawAnimatedBackground({ fbo: sceneFbo })
 
             // background to envMap texture
-            // drawAnimatedBackground({ fbo: bgFbo })
+            drawAnimatedBackground({ fbo: bgFbo })
 
             // animate sphere Z positions
             const newOffset = offset.map(([x, y, baseZ], i) => {
