@@ -53,16 +53,16 @@ const regl = createREGL({
 
     const colorPoints = [
       { position: [0, 0], color: hexColorToRgb('#000000') },
-      { position: [0.5, 0], color: hexColorToRgb('#0099FF') },
-      { position: [1, 0], color: hexColorToRgb('#7821E9') },
+      { position: [0.5, 0], color: hexColorToRgb('#9F28E4') },
+      { position: [1, 0], color: hexColorToRgb('#9F28E4') },
 
       { position: [0, 0.5], color: hexColorToRgb('#000000') },
       { position: [0.5, 0.5], color: hexColorToRgb('#9F28E4')},
       { position: [1, 0.5], color: hexColorToRgb('#30CFE4') },
 
       { position: [0, 1], color: hexColorToRgb('#7B00F6')},
-      { position: [0.5, 1], color: hexColorToRgb('#039BF2') },
-      { position: [1, 1], color: hexColorToRgb('#0081ff') },
+      { position: [0.5, 1], color: hexColorToRgb('#ffffff') },
+      { position: [1, 1], color: hexColorToRgb('#ffffff') },
     ]
 
     const drawAnimatedBackground = createDrawAnimatedBackgroundCommand(regl, colorPoints)
