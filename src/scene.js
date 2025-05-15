@@ -52,11 +52,11 @@ const regl = createREGL({
     const dofComposite = createDOFCompositeCommand(regl)
 
     const colorPoints = [
-      { position: [0, 0], color: hexColorToRgb('#BB00FF') },
+      { position: [0, 0], color: hexColorToRgb('#000000') },
       { position: [0.5, 0], color: hexColorToRgb('#0099FF') },
       { position: [1, 0], color: hexColorToRgb('#7821E9') },
 
-      { position: [0, 0.5], color: hexColorToRgb('#0081ff') },
+      { position: [0, 0.5], color: hexColorToRgb('#000000') },
       { position: [0.5, 0.5], color: hexColorToRgb('#9F28E4')},
       { position: [1, 0.5], color: hexColorToRgb('#30CFE4') },
 

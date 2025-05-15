@@ -22,7 +22,11 @@ export const createDrawAnimatedBackgroundCommand = (regl, colorPoints) =>
             float totalWeight = 0.0;
   
             for (int i = 0; i < 8; i++) {
-              float d = distance(v_uv, u_positions[i] + 0.15 * vec2(sin(u_time + float(i)), cos(u_time + float(i))));
+              vec2 offset = vec2(0);
+              if (i == 0 || i == 3) {
+                offset = 0.15 * vec2(sin(u_time + float(i)), cos(u_time + float(i)));
+              }
+              float d = distance(v_uv, u_positions[i] + offset);
               float w = exp(-7.5 * d * d); // Gaussian-like falloff
               color += u_colors[i] * w;
               totalWeight += w;
