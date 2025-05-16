@@ -46,6 +46,12 @@ resl({
       sphere[i * 3 + 2] = z + (Math.random() - 0.5) * jitter;
     }
 
+    // Distort the sphere with perlin noise AI!
+
+    python.POS = sphere
+    python.POS_MIN = [Math.min(...sphere), Math.min(...sphere), Math.min(...sphere)]
+    python.POS_MAX = [Math.max(...sphere), Math.max(...sphere), Math.max(...sphere)]
+
     const regl = createREGL({
       canvas,
       onDone: (err, regl) => {
