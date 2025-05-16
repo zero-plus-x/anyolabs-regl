@@ -220,7 +220,7 @@ void main() {
 
   float logosPointSize = mix(getGelPointSize(zDepth) - length(snoise3(posObj1 * 2.) * 2.2), getPyPointSize(zDepth) + length(snoise3(posObj2 * 2.) / 3.), logosTransitionAmount);
   float pointSize = logosPointSize;
-  gl_PointSize = pointSize;
+  gl_PointSize = pointSize * 2.2;
 
   float alphaNoise1 = (brownian1 - 0.4) + inversedZDepth;
 
