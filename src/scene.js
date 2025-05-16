@@ -98,7 +98,7 @@ resl({
       p[i] = p[i + 256] = permutation[i];
     }
     
-    // Apply perlin noise distortion to the sphere
+    // make a function out of sphere distortion logic and reuse it where appropriate AI!
     const distortedSphere = new Float32Array(obj1.COUNT * 3);
     for (let i = 0; i < obj1.COUNT; i++) {
       const idx = i * 3;
@@ -107,9 +107,9 @@ resl({
       const z = sphere[idx + 2];
       
       // Scale for noise sampling
-      const scale = 10.0;
+      const scale = 6;
       // Amount of distortion
-      const noiseStrength = 1;
+      const noiseStrength = 0.25;
       
       // Get noise value based on position
       const noiseValue = noise3D(x * scale, y * scale, z * scale);
@@ -137,7 +137,7 @@ resl({
       // Different scale for second sphere
       const scale = 5.5;
       // Different distortion strength
-      const noiseStrength = 0.7;
+      const noiseStrength = 0.25;
       
       // Add frequency offset to create different pattern
       const noiseValue = noise3D(x * scale + 5.0, y * scale + 2.5, z * scale + 1.0);
