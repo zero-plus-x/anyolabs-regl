@@ -122,11 +122,11 @@ float getPyPointSize(float factor) {
 
 float getLogoTransitionValue(float percentage) {
   vec2 keyframes[5];
-  keyframes[0] = vec2(0., 0.);
-  keyframes[1] = vec2(0.05, 0.);
+  keyframes[0] = vec2(0., 0.1);
+  keyframes[1] = vec2(0.15, 0.2);
   keyframes[2] = vec2(0.5, 0.5);
-  keyframes[3] = vec2(0.95, 1.);
-  keyframes[4] = vec2(1., 1.);
+  keyframes[3] = vec2(0.85, 0.8);
+  keyframes[4] = vec2(1., 0.9);
 
   // Handle edge cases
   if(percentage <= keyframes[0].x) {
@@ -163,23 +163,23 @@ void main() {
   float logosTransitionAmount = getLogoTransitionValue((loopTime < 0.5 ? loopTime : 1. - loopTime) * 2.);
   logosTransitionAmount = mapBezier(logosTransitionAmount, transitionBezier[0], transitionBezier[1], transitionBezier[2], transitionBezier[3]);
 
-  mat3 gelScaling = mat3(1.0);
-  gelScaling[0][0] = obj1Scale;
-  gelScaling[1][1] = obj1Scale;
-  gelScaling[2][2] = obj1Scale;
+  mat3 obj1Scaling = mat3(1.0);
+  obj1Scaling[0][0] = obj1Scale;
+  obj1Scaling[1][1] = obj1Scale;
+  obj1Scaling[2][2] = obj1Scale;
 
-  mat3 pyScaling = mat3(1.0);
-  pyScaling[0][0] = obj2Scale;
-  pyScaling[1][1] = obj2Scale;
-  pyScaling[2][2] = obj2Scale;
+  mat3 obj2Scaling = mat3(1.0);
+  obj2Scaling[0][0] = obj2Scale;
+  obj2Scaling[1][1] = obj2Scale;
+  obj2Scaling[2][2] = obj2Scale;
 
   vec3 _gelPosMin = obj1PosMin;
   vec3 _gelPosMax = obj1PosMax;
   vec3 _pyPosMin = obj2PosMin;
   vec3 _pyPosMax = obj2PosMax;
 
-  vec3 logosPosMin = mix(_gelPosMin * gelScaling, _pyPosMin * pyScaling, logosTransitionAmount);
-  vec3 logosPosMax = mix(_gelPosMax * gelScaling, _pyPosMax * pyScaling, logosTransitionAmount);
+  vec3 logosPosMin = mix(_gelPosMin * obj1Scaling, _pyPosMin * obj2Scaling, logosTransitionAmount);
+  vec3 logosPosMax = mix(_gelPosMax * obj1Scaling, _pyPosMax * obj2Scaling, logosTransitionAmount);
 
   float amount = 0.;
 
@@ -191,7 +191,7 @@ void main() {
   vec3 posMin = logosPosMin;
   vec3 posMax = logosPosMax;
 
-  vec3 logosPosition = mix(posObj1 * gelScaling - vec3(0.3, 0., 0.), posObj2 * pyScaling + vec3(0.3, 0., 0.), logosTransitionAmount);
+  vec3 logosPosition = mix(posObj1 * obj1Scaling, posObj2 * obj2Scaling, logosTransitionAmount);
 
   vec4 position = vec4(logosPosition, 1.);
 
@@ -200,7 +200,7 @@ void main() {
 
   vec3 p1 = position.xyz;
   p1 *= .3;
-  p1.y += uCurrentTime / 10.;
+  p1.y += uCurrentTime / 1.;
   vec3 p2 = position.xyz;
   p2.y += uCurrentTime * .2;
   p2 *= 1.;
@@ -220,7 +220,7 @@ void main() {
 
   float logosPointSize = mix(getGelPointSize(zDepth) - length(snoise3(posObj1 * 2.) * 2.2), getPyPointSize(zDepth) + length(snoise3(posObj2 * 2.) / 3.), logosTransitionAmount);
   float pointSize = logosPointSize;
-  gl_PointSize = pointSize * 2.2;
+  gl_PointSize = pointSize * 2.;
 
   float alphaNoise1 = (brownian1 - 0.4) + inversedZDepth;
 

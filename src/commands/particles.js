@@ -9,9 +9,9 @@ export const createDrawParticlesCommand = (regl, data) => {
       vert,
       frag,
       attributes: {
-        position: data.gel.POS,
-        posObj1: data.gel.POS,
-        posObj2: data.python.POS,
+        position: data.obj1.POS,
+        posObj1: data.obj1.POS,
+        posObj2: data.obj2.POS,
       },
       uniforms: {
         modelMatrix: (_, { position }) => mat4.translate([], mat4.identity([]), position),
@@ -26,26 +26,26 @@ export const createDrawParticlesCommand = (regl, data) => {
         "objects.obj2.alpha.value": [1, 0],
         "objects.obj2.alpha.bezier": [0, 0, 0.5, 0.5],
 
-        "objects.obj1.pointSize.value": [2.5, 0.01],
+        "objects.obj1.pointSize.value": [2, 0.01],
         "objects.obj1.pointSize.bezier": [0, 0, 0.5, 0.5],
 
-        "objects.obj2.pointSize.value": [2, 0.01],
+        "objects.obj2.pointSize.value": [1, 0.01],
         "objects.obj2.pointSize.bezier": [0, 0, 0.5, 0.5],
         
         // front_gel_color: "#005EFF",
-        // back_gel_color: "#AA00FF",
+        // back_gel_color: "#400080",
         "objects.obj1.color.value[0]": [0x00,0x5E,0xFF].map(x => x / 255),
-        "objects.obj1.color.value[1]": [0xAA, 0x00, 0xFF].map(x => x / 255),
+        "objects.obj1.color.value[1]": [0x40, 0x00, 0x80].map(x => x / 255),
         "objects.obj1.color.bezier": [0.2156, 0.964, 0.6969, 0.784],
 
         
-        // first_py_color: "#005EFF",
-        // second_py_color: "#AA00FF",
+        // first_py_color: "#005EFF",   
+        // second_py_color: "#400080",
         "objects.obj2.color.value[0]": [0x00,0x5E,0xFF].map(x => x / 255),
-        "objects.obj2.color.value[1]": [0xAA, 0x00, 0xFF].map(x => x / 255),
+        "objects.obj2.color.value[1]": [0x40, 0x00, 0x80].map(x => x / 255),
         "objects.obj2.color.bezier": [0.2156, 0.964, 0.6969, 0.784],
  
-        transitionBezier: [ 0.25, 0, 0.5, 1 ],
+        transitionBezier: [ 0.0, 0, 1, 1 ],
 
         uCurrentTime: ({ time }) => time,
         uLoopTime: ({ time }) => time,
@@ -53,12 +53,12 @@ export const createDrawParticlesCommand = (regl, data) => {
         obj1Scale: 1.2,
         obj2Scale: 1.2,
 
-        obj1PosMin: data.gel.POS_MIN,
-        obj1PosMax: data.gel.POS_MAX,
-        obj2PosMin: data.python.POS_MIN,
-        obj2PosMax: data.python.POS_MAX,
+        obj1PosMin: data.obj1.POS_MIN,
+        obj1PosMax: data.obj1.POS_MAX,
+        obj2PosMin: data.obj2.POS_MIN,
+        obj2PosMax: data.obj2.POS_MAX,
       },
-      count: data.gel.COUNT,
+      count: data.obj1.COUNT,
       primitive: 'points',
       blend: {
         enable: true,
