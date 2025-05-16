@@ -26,7 +26,7 @@ resl({
     const obj1 = {COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1]}
     const obj2 = {COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1]}
 
-    // Generate a sphere with evenly distributed points using Fibonacci algorithm
+    // Update sphere generation to fill insides of the spehere too not only the surface AI!
     const generateFibonacciSphere = (count, jitterAmount = 0.05) => {
       const positions = new Float32Array(count * 3);
       
