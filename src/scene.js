@@ -20,17 +20,18 @@ resl({
     },
   },
   onDone: (resl) => {
-    const binaries = resl
+    // const binaries = resl
 
-    const gel = decodePoints(binaries.obj1)
-    const python = decodePoints(binaries.obj2)
+    const COUNT = 100000
+    const obj1 = {COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1]}
+    const obj2 = {COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1]}
 
-    const sphere = new Float32Array(gel.COUNT * 3)
+    const sphere = new Float32Array(obj1.COUNT * 3)
 
     // Fill sphere with evenly distributed points
-    for (let i = 0; i < gel.COUNT; i++) {
+    for (let i = 0; i < obj1.COUNT; i++) {
       // Use Fibonacci sphere algorithm for even distribution
-      const offset = 2.0 / gel.COUNT;
+      const offset = 2.0 / obj1.COUNT;
       const y = (i * offset) - 1 + (offset / 2);
       const r = Math.sqrt(1 - y * y);
       const phi = i * (Math.PI * (3 - Math.sqrt(5))); // Golden angle
@@ -98,17 +99,17 @@ resl({
     }
     
     // Apply perlin noise distortion to the sphere
-    const distortedSphere = new Float32Array(gel.COUNT * 3);
-    for (let i = 0; i < gel.COUNT; i++) {
+    const distortedSphere = new Float32Array(obj1.COUNT * 3);
+    for (let i = 0; i < obj1.COUNT; i++) {
       const idx = i * 3;
       const x = sphere[idx];
       const y = sphere[idx + 1];
       const z = sphere[idx + 2];
       
       // Scale for noise sampling
-      const scale = 2.0;
+      const scale = 10.0;
       // Amount of distortion
-      const noiseStrength = 0.2;
+      const noiseStrength = 1;
       
       // Get noise value based on position
       const noiseValue = noise3D(x * scale, y * scale, z * scale);
@@ -126,17 +127,17 @@ resl({
     }
 
     // Create second distorted sphere with different noise parameters
-    const distortedSphere2 = new Float32Array(gel.COUNT * 3);
-    for (let i = 0; i < gel.COUNT; i++) {
+    const distortedSphere2 = new Float32Array(obj1.COUNT * 3);
+    for (let i = 0; i < obj1.COUNT; i++) {
       const idx = i * 3;
       const x = sphere[idx];
       const y = sphere[idx + 1];
       const z = sphere[idx + 2];
       
       // Different scale for second sphere
-      const scale = 3.5;
+      const scale = 5.5;
       // Different distortion strength
-      const noiseStrength = 0.3;
+      const noiseStrength = 0.7;
       
       // Add frequency offset to create different pattern
       const noiseValue = noise3D(x * scale + 5.0, y * scale + 2.5, z * scale + 1.0);
@@ -160,9 +161,14 @@ resl({
       }
     }
 
-    python.POS = distortedSphere2
-    python.POS_MIN = [Math.min(...distortedSphere), Math.min(...distortedSphere), Math.min(...distortedSphere)]
-    python.POS_MAX = [Math.max(...distortedSphere), Math.max(...distortedSphere), Math.max(...distortedSphere)]
+    obj1.POS = distortedSphere
+    // Calculate min max values when generating sphere AI!
+    obj1.POS_MIN = [Math.min(...distortedSphere), Math.min(...distortedSphere), Math.min(...distortedSphere)]
+    obj1.POS_MAX = [Math.max(...distortedSphere), Math.max(...distortedSphere), Math.max(...distortedSphere)]
+
+    obj2.POS = distortedSphere2
+    obj2.POS_MIN = [Math.min(...distortedSphere), Math.min(...distortedSphere), Math.min(...distortedSphere)]
+    obj2.POS_MAX = [Math.max(...distortedSphere), Math.max(...distortedSphere), Math.max(...distortedSphere)]
 
     const regl = createREGL({
       canvas,
@@ -176,7 +182,7 @@ resl({
           regl,
         })
 
-        const drawParticles = createDrawParticlesCommand(regl, { gel, python })
+        const drawParticles = createDrawParticlesCommand(regl, { obj1, obj2 })
 
         resizeRegl(canvas, regl, [])
 
