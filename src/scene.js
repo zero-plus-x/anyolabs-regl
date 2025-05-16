@@ -161,14 +161,41 @@ resl({
       }
     }
 
-    obj1.POS = distortedSphere
-    // Calculate min max values when generating sphere AI!
-    obj1.POS_MIN = [Math.min(...distortedSphere), Math.min(...distortedSphere), Math.min(...distortedSphere)]
-    obj1.POS_MAX = [Math.max(...distortedSphere), Math.max(...distortedSphere), Math.max(...distortedSphere)]
+    // Calculate min/max values more efficiently
+    const calculateMinMax = (positions) => {
+      let minX = Infinity, minY = Infinity, minZ = Infinity;
+      let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+      
+      for (let i = 0; i < positions.length; i += 3) {
+        const x = positions[i];
+        const y = positions[i + 1];
+        const z = positions[i + 2];
+        
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        minZ = Math.min(minZ, z);
+        
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+        maxZ = Math.max(maxZ, z);
+      }
+      
+      return {
+        min: [minX, minY, minZ],
+        max: [maxX, maxY, maxZ]
+      };
+    };
+    
+    // Set positions and calculate bounds
+    obj1.POS = distortedSphere;
+    const obj1Bounds = calculateMinMax(distortedSphere);
+    obj1.POS_MIN = obj1Bounds.min;
+    obj1.POS_MAX = obj1Bounds.max;
 
-    obj2.POS = distortedSphere2
-    obj2.POS_MIN = [Math.min(...distortedSphere), Math.min(...distortedSphere), Math.min(...distortedSphere)]
-    obj2.POS_MAX = [Math.max(...distortedSphere), Math.max(...distortedSphere), Math.max(...distortedSphere)]
+    obj2.POS = distortedSphere2;
+    const obj2Bounds = calculateMinMax(distortedSphere2);
+    obj2.POS_MIN = obj2Bounds.min;
+    obj2.POS_MAX = obj2Bounds.max;
 
     const regl = createREGL({
       canvas,
