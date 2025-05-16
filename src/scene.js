@@ -65,7 +65,7 @@ resl({
         regl.frame(() =>
           setupCamera(
             {
-              cameraPosition: [0, 0 , 5],
+              cameraPosition: [0, 1 , 3],
               target: [0, 0, 0],
             },
             () => {

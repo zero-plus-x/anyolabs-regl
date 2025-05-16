@@ -48,9 +48,8 @@ export const createDrawParticlesCommand = (regl, data) => {
  
         transitionBezier: [ 0.25, 0, 0.5, 1 ],
 
-        uCurrentTime: 0,
-        uLoopTime: ({ time }) => time / 1000,
-        uDeltaTime: 0,
+        uCurrentTime: ({ time }) => time,
+        uLoopTime: ({ time }) => time,
 
         gelScale: 1.2,
         pyScale: 1.15,
@@ -62,8 +61,19 @@ export const createDrawParticlesCommand = (regl, data) => {
       },
       count: data.gel.COUNT,
       primitive: 'points',
-      depth: {
+      blend: {
         enable: true,
+        func: {
+          srcRGB: 'src alpha',
+          srcAlpha: 'src alpha',
+          dstRGB: 'one minus src alpha',
+          dstAlpha: 'one minus src alpha',
+        },
+        equation: {
+          rgb: 'add',
+          alpha: 'add'
+        },
+        color: [0, 0, 0, 1]
       },
     })
   }

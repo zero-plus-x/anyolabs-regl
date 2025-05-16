@@ -160,7 +160,7 @@ float getLogoTransitionValue(float percentage) {
 }
 
 void main() {
-  float loopTime = mod(uLoopTime * 1000. / 20., 1.);
+  float loopTime = mod(uLoopTime / 20., 1.);
   float logosTransitionAmount = getLogoTransitionValue((loopTime < 0.5 ? loopTime : 1. - loopTime) * 2.);
   logosTransitionAmount = mapBezier(logosTransitionAmount, transitionBezier[0], transitionBezier[1], transitionBezier[2], transitionBezier[3]);
 
@@ -208,9 +208,9 @@ void main() {
   p2.y += uCurrentTime * .2;
   p2 *= 1.;
 
-  vec4 curlNoiseConstant = vec4(snoise3(p2) * 5.0, .0) / ((sin(uCurrentTime / 6000.) + 1.) / 2. * 20. + 10.) * 0.15 * (1. - transitionFactor);
+  vec4 curlNoiseConstant = vec4(snoise3(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.15 * (1. - transitionFactor);
 
-  float brownian1 = fbm(position.xyz + vec3(0., uCurrentTime / 20., 0.));
+  float brownian1 = fbm(position.xyz + vec3(0., uCurrentTime / 8., 0.));
 
   vec3 pos = position.xyz;
 
