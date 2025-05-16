@@ -125,9 +125,42 @@ resl({
       distortedSphere[idx + 2] = z + nz * noiseValue * noiseStrength;
     }
 
-    // Create second distorted sphere AI!
+    // Create second distorted sphere with different noise parameters
+    const distortedSphere2 = new Float32Array(gel.COUNT * 3);
+    for (let i = 0; i < gel.COUNT; i++) {
+      const idx = i * 3;
+      const x = sphere[idx];
+      const y = sphere[idx + 1];
+      const z = sphere[idx + 2];
+      
+      // Different scale for second sphere
+      const scale = 3.5;
+      // Different distortion strength
+      const noiseStrength = 0.3;
+      
+      // Add frequency offset to create different pattern
+      const noiseValue = noise3D(x * scale + 5.0, y * scale + 2.5, z * scale + 1.0);
+      
+      // Apply distortion along the normal with some variation
+      const length = Math.sqrt(x*x + y*y + z*z);
+      const nx = x / length;
+      const ny = y / length;
+      const nz = z / length;
+      
+      // Apply distortion with some additional effects
+      distortedSphere2[idx] = x + nx * noiseValue * noiseStrength;
+      distortedSphere2[idx + 1] = y + ny * noiseValue * noiseStrength;
+      distortedSphere2[idx + 2] = z + nz * noiseValue * noiseStrength;
+      
+      // Add some ridge-like features
+      if (noiseValue > 0.2) {
+        distortedSphere2[idx] += nx * 0.1;
+        distortedSphere2[idx + 1] += ny * 0.1;
+        distortedSphere2[idx + 2] += nz * 0.1;
+      }
+    }
 
-    python.POS = distortedSphere
+    python.POS = distortedSphere2
     python.POS_MIN = [Math.min(...distortedSphere), Math.min(...distortedSphere), Math.min(...distortedSphere)]
     python.POS_MAX = [Math.max(...distortedSphere), Math.max(...distortedSphere), Math.max(...distortedSphere)]
 
