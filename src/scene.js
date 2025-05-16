@@ -98,68 +98,74 @@ resl({
       p[i] = p[i + 256] = permutation[i];
     }
     
-    // make a function out of sphere distortion logic and reuse it where appropriate AI!
-    const distortedSphere = new Float32Array(obj1.COUNT * 3);
-    for (let i = 0; i < obj1.COUNT; i++) {
-      const idx = i * 3;
-      const x = sphere[idx];
-      const y = sphere[idx + 1];
-      const z = sphere[idx + 2];
+    // Function to distort a sphere with noise
+    const distortSphere = (basePositions, options = {}) => {
+      const {
+        scale = 6.0,
+        noiseStrength = 0.25,
+        offsetX = 0,
+        offsetY = 0,
+        offsetZ = 0,
+        addRidges = false,
+        ridgeThreshold = 0.2,
+        ridgeStrength = 0.1
+      } = options;
       
-      // Scale for noise sampling
-      const scale = 6;
-      // Amount of distortion
-      const noiseStrength = 0.25;
+      const count = basePositions.length / 3;
+      const distorted = new Float32Array(basePositions.length);
       
-      // Get noise value based on position
-      const noiseValue = noise3D(x * scale, y * scale, z * scale);
-      
-      // Apply distortion along the normal (which for a sphere is the normalized position)
-      const length = Math.sqrt(x*x + y*y + z*z);
-      const nx = x / length;
-      const ny = y / length;
-      const nz = z / length;
-      
-      // Store distorted position
-      distortedSphere[idx] = x + nx * noiseValue * noiseStrength;
-      distortedSphere[idx + 1] = y + ny * noiseValue * noiseStrength;
-      distortedSphere[idx + 2] = z + nz * noiseValue * noiseStrength;
-    }
-
-    // Create second distorted sphere with different noise parameters
-    const distortedSphere2 = new Float32Array(obj1.COUNT * 3);
-    for (let i = 0; i < obj1.COUNT; i++) {
-      const idx = i * 3;
-      const x = sphere[idx];
-      const y = sphere[idx + 1];
-      const z = sphere[idx + 2];
-      
-      // Different scale for second sphere
-      const scale = 5.5;
-      // Different distortion strength
-      const noiseStrength = 0.25;
-      
-      // Add frequency offset to create different pattern
-      const noiseValue = noise3D(x * scale + 5.0, y * scale + 2.5, z * scale + 1.0);
-      
-      // Apply distortion along the normal with some variation
-      const length = Math.sqrt(x*x + y*y + z*z);
-      const nx = x / length;
-      const ny = y / length;
-      const nz = z / length;
-      
-      // Apply distortion with some additional effects
-      distortedSphere2[idx] = x + nx * noiseValue * noiseStrength;
-      distortedSphere2[idx + 1] = y + ny * noiseValue * noiseStrength;
-      distortedSphere2[idx + 2] = z + nz * noiseValue * noiseStrength;
-      
-      // Add some ridge-like features
-      if (noiseValue > 0.2) {
-        distortedSphere2[idx] += nx * 0.1;
-        distortedSphere2[idx + 1] += ny * 0.1;
-        distortedSphere2[idx + 2] += nz * 0.1;
+      for (let i = 0; i < count; i++) {
+        const idx = i * 3;
+        const x = basePositions[idx];
+        const y = basePositions[idx + 1];
+        const z = basePositions[idx + 2];
+        
+        // Get noise value based on position with optional offsets
+        const noiseValue = noise3D(
+          x * scale + offsetX, 
+          y * scale + offsetY, 
+          z * scale + offsetZ
+        );
+        
+        // Calculate normal (normalized position for a sphere)
+        const length = Math.sqrt(x*x + y*y + z*z);
+        const nx = x / length;
+        const ny = y / length;
+        const nz = z / length;
+        
+        // Apply basic distortion along the normal
+        distorted[idx] = x + nx * noiseValue * noiseStrength;
+        distorted[idx + 1] = y + ny * noiseValue * noiseStrength;
+        distorted[idx + 2] = z + nz * noiseValue * noiseStrength;
+        
+        // Optionally add ridge features
+        if (addRidges && noiseValue > ridgeThreshold) {
+          distorted[idx] += nx * ridgeStrength;
+          distorted[idx + 1] += ny * ridgeStrength;
+          distorted[idx + 2] += nz * ridgeStrength;
+        }
       }
-    }
+      
+      return distorted;
+    };
+    
+    // Create first distorted sphere
+    const distortedSphere = distortSphere(sphere, {
+      scale: 6.0,
+      noiseStrength: 0.25
+    });
+    
+    // Create second distorted sphere with different parameters
+    const distortedSphere2 = distortSphere(sphere, {
+      scale: 5.5,
+      noiseStrength: 0.25,
+      offsetX: 5.0,
+      offsetY: 2.5,
+      offsetZ: 1.0,
+      addRidges: true,
+      ridgeThreshold: 0.2,
+      ridgeStrength: 0.1
+    });
 
     // Calculate min/max values more efficiently
     const calculateMinMax = (positions) => {
