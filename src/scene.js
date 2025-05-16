@@ -26,25 +26,28 @@ resl({
     const obj1 = {COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1]}
     const obj2 = {COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1]}
 
-    // Update sphere generation to fill insides of the spehere too not only the surface AI!
     const generateFibonacciSphere = (count, jitterAmount = 0.05) => {
       const positions = new Float32Array(count * 3);
       
       for (let i = 0; i < count; i++) {
-        // Use Fibonacci sphere algorithm for even distribution
+        // Generate random radius to fill the volume (cube root for uniform density)
+        const radius = Math.pow(Math.random(), 1/3);
+        
+        // Use Fibonacci sphere algorithm for even angular distribution
         const offset = 2.0 / count;
         const y = (i * offset) - 1 + (offset / 2);
         const r = Math.sqrt(1 - y * y);
         const phi = i * (Math.PI * (3 - Math.sqrt(5))); // Golden angle
         
-        // Convert to Cartesian coordinates
-        const x = Math.cos(phi) * r;
-        const z = Math.sin(phi) * r;
+        // Convert to Cartesian coordinates and scale by radius
+        const x = Math.cos(phi) * r * radius;
+        const z = Math.sin(phi) * r * radius;
+        const scaledY = y * radius;
         
         // Add some randomness to avoid perfect patterns
         const jitter = jitterAmount;
         positions[i * 3] = x + (Math.random() - 0.5) * jitter;
-        positions[i * 3 + 1] = y + (Math.random() - 0.5) * jitter;
+        positions[i * 3 + 1] = scaledY + (Math.random() - 0.5) * jitter;
         positions[i * 3 + 2] = z + (Math.random() - 0.5) * jitter;
       }
       
