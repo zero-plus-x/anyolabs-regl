@@ -6,17 +6,16 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
-attribute vec3 posGel;
-uniform vec3 gelPosMin;
-uniform vec3 gelPosMax;
+attribute vec3 posObj1;
+uniform vec3 obj1PosMin;
+uniform vec3 obj1PosMax;
 
-attribute vec3 posPy;
-uniform vec3 pyPosMin;
-uniform vec3 pyPosMax;
-attribute float colPy;
+attribute vec3 posObj2;
+uniform vec3 obj2PosMin;
+uniform vec3 obj2PosMax;
 
-uniform float gelScale;
-uniform float pyScale;
+uniform float obj1Scale;
+uniform float obj2Scale;
 
 uniform float uAlpha;
 uniform float uAmount;
@@ -51,8 +50,8 @@ struct ObjectSettings {
 };
 
 struct Objects {
-  ObjectSettings gel;
-  ObjectSettings py;
+  ObjectSettings obj1;
+  ObjectSettings obj2;
 };
 
 uniform Objects objects;
@@ -102,31 +101,31 @@ float calcTransitionFactor(float blendAmount) {
 }
 
 vec3 getGelColor(float factor) {
-  return mix(objects.gel.color.value[0], objects.gel.color.value[1], mapBezier(factor, objects.gel.color.bezier[0], objects.gel.color.bezier[1], objects.gel.color.bezier[2], objects.gel.color.bezier[3]));
+  return mix(objects.obj1.color.value[0], objects.obj1.color.value[1], mapBezier(factor, objects.obj1.color.bezier[0], objects.obj1.color.bezier[1], objects.obj1.color.bezier[2], objects.obj1.color.bezier[3]));
 }
 float getGelAlpha(float factor) {
-  return mix(objects.gel.alpha.value[0], objects.gel.alpha.value[1], mapBezier(factor, objects.gel.alpha.bezier[0], objects.gel.alpha.bezier[1], objects.gel.alpha.bezier[2], objects.gel.alpha.bezier[3]));
+  return mix(objects.obj1.alpha.value[0], objects.obj1.alpha.value[1], mapBezier(factor, objects.obj1.alpha.bezier[0], objects.obj1.alpha.bezier[1], objects.obj1.alpha.bezier[2], objects.obj1.alpha.bezier[3]));
 }
 float getGelPointSize(float factor) {
-  return mix(objects.gel.pointSize.value[0], objects.gel.pointSize.value[1], mapBezier(factor, objects.gel.pointSize.bezier[0], objects.gel.pointSize.bezier[1], objects.gel.pointSize.bezier[2], objects.gel.pointSize.bezier[3]));
+  return mix(objects.obj1.pointSize.value[0], objects.obj1.pointSize.value[1], mapBezier(factor, objects.obj1.pointSize.bezier[0], objects.obj1.pointSize.bezier[1], objects.obj1.pointSize.bezier[2], objects.obj1.pointSize.bezier[3]));
 }
 
-vec3 getPyColor() {
-  return objects.py.color.value[1];
+vec3 getPyColor(float factor) {
+  return mix(objects.obj2.color.value[0], objects.obj2.color.value[1], mapBezier(factor, objects.obj2.color.bezier[0], objects.obj2.color.bezier[1], objects.obj2.color.bezier[2], objects.obj2.color.bezier[3]));
 }
 float getPyAlpha(float factor) {
-  return mix(objects.py.alpha.value[0], objects.py.alpha.value[1], mapBezier(factor, objects.py.alpha.bezier[0], objects.py.alpha.bezier[1], objects.py.alpha.bezier[2], objects.py.alpha.bezier[3]));
+  return mix(objects.obj2.alpha.value[0], objects.obj2.alpha.value[1], mapBezier(factor, objects.obj2.alpha.bezier[0], objects.obj2.alpha.bezier[1], objects.obj2.alpha.bezier[2], objects.obj2.alpha.bezier[3]));
 }
 float getPyPointSize(float factor) {
-  return mix(objects.py.pointSize.value[0], objects.py.pointSize.value[1], mapBezier(factor, objects.py.pointSize.bezier[0], objects.py.pointSize.bezier[1], objects.py.pointSize.bezier[2], objects.py.pointSize.bezier[3]));
+  return mix(objects.obj2.pointSize.value[0], objects.obj2.pointSize.value[1], mapBezier(factor, objects.obj2.pointSize.bezier[0], objects.obj2.pointSize.bezier[1], objects.obj2.pointSize.bezier[2], objects.obj2.pointSize.bezier[3]));
 }
 
 float getLogoTransitionValue(float percentage) {
   vec2 keyframes[5];
   keyframes[0] = vec2(0., 0.);
-  keyframes[1] = vec2(0.05, 0.05);
+  keyframes[1] = vec2(0.05, 0.);
   keyframes[2] = vec2(0.5, 0.5);
-  keyframes[3] = vec2(0.95, 0.95);
+  keyframes[3] = vec2(0.95, 1.);
   keyframes[4] = vec2(1., 1.);
 
   // Handle edge cases
@@ -165,19 +164,19 @@ void main() {
   logosTransitionAmount = mapBezier(logosTransitionAmount, transitionBezier[0], transitionBezier[1], transitionBezier[2], transitionBezier[3]);
 
   mat3 gelScaling = mat3(1.0);
-  gelScaling[0][0] = gelScale;
-  gelScaling[1][1] = gelScale;
-  gelScaling[2][2] = gelScale;
+  gelScaling[0][0] = obj1Scale;
+  gelScaling[1][1] = obj1Scale;
+  gelScaling[2][2] = obj1Scale;
 
   mat3 pyScaling = mat3(1.0);
-  pyScaling[0][0] = pyScale;
-  pyScaling[1][1] = pyScale;
-  pyScaling[2][2] = pyScale;
+  pyScaling[0][0] = obj2Scale;
+  pyScaling[1][1] = obj2Scale;
+  pyScaling[2][2] = obj2Scale;
 
-  vec3 _gelPosMin = gelPosMin;
-  vec3 _gelPosMax = gelPosMax;
-  vec3 _pyPosMin = pyPosMin;
-  vec3 _pyPosMax = pyPosMax;
+  vec3 _gelPosMin = obj1PosMin;
+  vec3 _gelPosMax = obj1PosMax;
+  vec3 _pyPosMin = obj2PosMin;
+  vec3 _pyPosMax = obj2PosMax;
 
   vec3 logosPosMin = mix(_gelPosMin * gelScaling, _pyPosMin * pyScaling, logosTransitionAmount);
   vec3 logosPosMax = mix(_gelPosMax * gelScaling, _pyPosMax * pyScaling, logosTransitionAmount);
@@ -192,9 +191,7 @@ void main() {
   vec3 posMin = logosPosMin;
   vec3 posMax = logosPosMax;
 
-
-
-  vec3 logosPosition = mix(posGel * gelScaling, posPy * pyScaling, logosTransitionAmount);
+  vec3 logosPosition = mix(posObj1 * gelScaling - vec3(0.3, 0., 0.), posObj2 * pyScaling + vec3(0.3, 0., 0.), logosTransitionAmount);
 
   vec4 position = vec4(logosPosition, 1.);
 
@@ -221,7 +218,7 @@ void main() {
   position = projectionMatrix * modelViewMatrix * finalPosition;
   gl_Position = position;
 
-  float logosPointSize = mix(getGelPointSize(zDepth) - length(snoise3(posGel * 2.) * 2.2), getPyPointSize(zDepth) + length(snoise3(posPy * 2.) / 3.), logosTransitionAmount);
+  float logosPointSize = mix(getGelPointSize(zDepth) - length(snoise3(posObj1 * 2.) * 2.2), getPyPointSize(zDepth) + length(snoise3(posObj2 * 2.) / 3.), logosTransitionAmount);
   float pointSize = logosPointSize;
   gl_PointSize = pointSize;
 
@@ -232,7 +229,7 @@ void main() {
   float pointAlpha = logosAlpha;
   pointAlpha = pointAlpha * uAlpha;
 
-  vec3 logosColor = mix(getGelColor(zDepth), getPyColor(), logosTransitionAmount);
+  vec3 logosColor = mix(getGelColor(zDepth), getPyColor(zDepth), logosTransitionAmount);
   vec3 pointColor = logosColor;
 
   vColor = vec4(pointColor, pointAlpha);

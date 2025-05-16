@@ -6,6 +6,8 @@ export const decodePoints = (buffer) => {
   const count = countArray[0]
   offset += 4
 
+  console.log('COUNT', buffer)
+
   // Read POS_MIN (3 Float32, 12 bytes)
   const posMin = new Float32Array(buffer, offset, 3)
   offset += 12

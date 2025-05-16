@@ -10,41 +10,20 @@ const canvas = document.getElementById('heroImage')
 
 resl({
   manifest: {
-    gel: {
+    obj1: {
       type: 'binary',
-      src: '/data/gel.bin',
+      src: '/data/obj1.bin',
     },
-    python1: {
+    obj2: {
       type: 'binary',
-      src: '/data/python1.bin',
-    },
-    python2: {
-      type: 'binary',
-      src: '/data/python2.bin',
+      src: '/data/obj2.bin',
     },
   },
   onDone: (resl) => {
     const binaries = resl
 
-    const gel = decodePoints(binaries.gel)
-    const python1 = decodePoints(binaries.python1)
-    const python2 = decodePoints(binaries.python2)
-
-    const POS1 = python1.POS
-    const POS2 = python2.POS
-
-    const POS = new Float32Array(POS1.length + POS2.length)
-    POS.set(POS1)
-    POS.set(POS2, POS1.length)
-
-    const COL = shuffleAndColor(POS, POS1.length)
-
-    const python = {
-      POS,
-      COL,
-      POS_MIN: python1.POS_MIN,
-      POS_MAX: python1.POS_MAX,
-    }
+    const gel = decodePoints(binaries.obj1)
+    const python = decodePoints(binaries.obj2)
 
     const regl = createREGL({
       canvas,
