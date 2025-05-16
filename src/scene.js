@@ -26,6 +26,7 @@ resl({
     const obj1 = {COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1]}
     const obj2 = {COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1]}
 
+    // Make a function out of sphere generation code AI!
     const sphere = new Float32Array(obj1.COUNT * 3)
 
     // Fill sphere with evenly distributed points
