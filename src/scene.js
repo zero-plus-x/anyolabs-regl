@@ -25,6 +25,10 @@ resl({
     const gel = decodePoints(binaries.obj1)
     const python = decodePoints(binaries.obj2)
 
+    const sphere = new Float32Array(gel.COUNT * 3)
+
+    // fill sphere with cordinates of points randomly but evenly filling a sphere with radius of 1 AI! 
+
     const regl = createREGL({
       canvas,
       onDone: (err, regl) => {
