@@ -125,6 +125,8 @@ resl({
       distortedSphere[idx + 2] = z + nz * noiseValue * noiseStrength;
     }
 
+    // Create second distorted sphere AI!
+
     python.POS = distortedSphere
     python.POS_MIN = [Math.min(...distortedSphere), Math.min(...distortedSphere), Math.min(...distortedSphere)]
     python.POS_MAX = [Math.max(...distortedSphere), Math.max(...distortedSphere), Math.max(...distortedSphere)]
