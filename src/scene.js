@@ -249,3 +249,11 @@ const regl = createREGL({
 
 import FPSMeter from 'fps-m'
 new FPSMeter({ ui: true }).start()
+
+canvas.addEventListener('dblclick', () => {
+  if (!document.fullscreenElement) {
+    canvas.requestFullscreen()
+  } else {
+    document.exitFullscreen()
+  }
+})
