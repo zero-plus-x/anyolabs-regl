@@ -65,6 +65,7 @@ float fbmScaleScalar = 2.0;
 #include "./mapBezier.glsl"
 #include "lygia/generative/snoise.glsl"
 #include "lygia/generative/fbm.glsl"
+#include "lygia/generative/curl.glsl"
 
 varying vec4 vColor;
 
@@ -159,9 +160,9 @@ float getLogoTransitionValue(float percentage) {
 }
 
 void main() {
-  float loopTime = mod(uLoopTime / 20., 1.);
-  float logosTransitionAmount = getLogoTransitionValue((loopTime < 0.5 ? loopTime : 1. - loopTime) * 2.);
-  logosTransitionAmount = mapBezier(logosTransitionAmount, transitionBezier[0], transitionBezier[1], transitionBezier[2], transitionBezier[3]);
+  float loopTime = 0.0;//mod(uLoopTime / 20., 1.);
+  float logosTransitionAmount = 0.0;//getLogoTransitionValue((loopTime < 0.5 ? loopTime : 1. - loopTime) * 2.);
+  logosTransitionAmount = 0.0;//mapBezier(logosTransitionAmount, transitionBezier[0], transitionBezier[1], transitionBezier[2], transitionBezier[3]);
 
   mat3 obj1Scaling = mat3(1.0);
   obj1Scaling[0][0] = obj1Scale;
@@ -205,7 +206,7 @@ void main() {
   p2.y += uCurrentTime * .2;
   p2 *= 1.;
 
-  vec4 curlNoiseConstant = vec4(snoise3(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.15 * (1. - transitionFactor);
+  vec4 curlNoiseConstant = vec4(curl(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1 * (1. - transitionFactor);
 
   float brownian1 = fbm(position.xyz + vec3(0., uCurrentTime / 8., 0.));
 
