@@ -234,7 +234,7 @@ const regl = createREGL({
           target: [0, 0, 0],
         },
         () => {
-          regl.clear({ color: [0, 0, 0, 1], framebuffer: null })
+          regl.clear({ color: [0, 0, 0, 0], framebuffer: null })
 
           drawParticles({
             position: [0, 0, 0],
