@@ -10,12 +10,7 @@ attribute vec3 posObj1;
 uniform vec3 obj1PosMin;
 uniform vec3 obj1PosMax;
 
-attribute vec3 posObj2;
-uniform vec3 obj2PosMin;
-uniform vec3 obj2PosMax;
-
 uniform float obj1Scale;
-uniform float obj2Scale;
 
 uniform float uAlpha;
 uniform float uAmount;
@@ -31,7 +26,6 @@ uniform vec4 pointAlphaBezier;
 uniform vec4 transitionBezier;
 
 uniform float uCurrentTime;
-uniform float uLoopTime;
 
 struct ValueWithCurve {
   vec2 value;
@@ -51,7 +45,6 @@ struct ObjectSettings {
 
 struct Objects {
   ObjectSettings obj1;
-  ObjectSettings obj2;
 };
 
 uniform Objects objects;
@@ -111,16 +104,6 @@ float getGelPointSize(float factor) {
   return mix(objects.obj1.pointSize.value[0], objects.obj1.pointSize.value[1], mapBezier(factor, objects.obj1.pointSize.bezier[0], objects.obj1.pointSize.bezier[1], objects.obj1.pointSize.bezier[2], objects.obj1.pointSize.bezier[3]));
 }
 
-vec3 getPyColor(float factor) {
-  return mix(objects.obj2.color.value[0], objects.obj2.color.value[1], mapBezier(factor, objects.obj2.color.bezier[0], objects.obj2.color.bezier[1], objects.obj2.color.bezier[2], objects.obj2.color.bezier[3]));
-}
-float getPyAlpha(float factor) {
-  return mix(objects.obj2.alpha.value[0], objects.obj2.alpha.value[1], mapBezier(factor, objects.obj2.alpha.bezier[0], objects.obj2.alpha.bezier[1], objects.obj2.alpha.bezier[2], objects.obj2.alpha.bezier[3]));
-}
-float getPyPointSize(float factor) {
-  return mix(objects.obj2.pointSize.value[0], objects.obj2.pointSize.value[1], mapBezier(factor, objects.obj2.pointSize.bezier[0], objects.obj2.pointSize.bezier[1], objects.obj2.pointSize.bezier[2], objects.obj2.pointSize.bezier[3]));
-}
-
 float getLogoTransitionValue(float percentage) {
   vec2 keyframes[5];
   keyframes[0] = vec2(0., 0.1);
@@ -160,39 +143,26 @@ float getLogoTransitionValue(float percentage) {
 }
 
 void main() {
-  float loopTime = 0.0;//mod(uLoopTime / 20., 1.);
-  float logosTransitionAmount = 0.0;//getLogoTransitionValue((loopTime < 0.5 ? loopTime : 1. - loopTime) * 2.);
-  logosTransitionAmount = 0.0;//mapBezier(logosTransitionAmount, transitionBezier[0], transitionBezier[1], transitionBezier[2], transitionBezier[3]);
+  float logosTransitionAmount = 0.0;
+  logosTransitionAmount = 0.0;
 
   mat3 obj1Scaling = mat3(1.0);
   obj1Scaling[0][0] = obj1Scale;
   obj1Scaling[1][1] = obj1Scale;
   obj1Scaling[2][2] = obj1Scale;
 
-  mat3 obj2Scaling = mat3(1.0);
-  obj2Scaling[0][0] = obj2Scale;
-  obj2Scaling[1][1] = obj2Scale;
-  obj2Scaling[2][2] = obj2Scale;
-
-  vec3 _gelPosMin = obj1PosMin;
-  vec3 _gelPosMax = obj1PosMax;
-  vec3 _pyPosMin = obj2PosMin;
-  vec3 _pyPosMax = obj2PosMax;
-
-  vec3 logosPosMin = mix(_gelPosMin * obj1Scaling, _pyPosMin * obj2Scaling, logosTransitionAmount);
-  vec3 logosPosMax = mix(_gelPosMax * obj1Scaling, _pyPosMax * obj2Scaling, logosTransitionAmount);
+  vec3 logosPosMin = obj1PosMin * obj1Scaling;
+  vec3 logosPosMax = obj1PosMax * obj1Scaling;
 
   float amount = 0.;
 
-  float a = calcTransitionFactor(amount);
-  float b = calcTransitionFactor(1. - amount);
-  float transitionFactor = (a + b) / 2.;
-  float transitionAmount = amount;
+  float transitionFactor = 0.;//(a + b) / 2.;
+  float transitionAmount = 0.;
 
   vec3 posMin = logosPosMin;
   vec3 posMax = logosPosMax;
 
-  vec3 logosPosition = mix(posObj1 * obj1Scaling, posObj2 * obj2Scaling, logosTransitionAmount);
+  vec3 logosPosition = posObj1 * obj1Scaling;
 
   vec4 position = vec4(logosPosition, 1.);
 
@@ -206,8 +176,8 @@ void main() {
   p2.y += uCurrentTime * .2;
   p2 *= 1.;
 
-  vec4 snoiseNoiseConstant = vec4(snoise3(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1 * (1. - transitionFactor);
-  vec4 curlNoiseConstant = vec4(curl(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1 * (1. - transitionFactor);
+  vec4 snoiseNoiseConstant = vec4(snoise3(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1 * (1. - 0.);
+  vec4 curlNoiseConstant = vec4(curl(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1 * (1. - 0.);
   vec4 finalNoiseConstant = snoiseNoiseConstant + curlNoiseConstant;
 
 
@@ -222,18 +192,18 @@ void main() {
   position = projectionMatrix * modelViewMatrix * finalPosition;
   gl_Position = position;
 
-  float logosPointSize = mix(getGelPointSize(zDepth) - length(snoise3(posObj1 * 2.) * 2.2), getPyPointSize(zDepth) + length(snoise3(posObj2 * 2.) / 3.), logosTransitionAmount);
+  float logosPointSize = getGelPointSize(zDepth) - length(snoise3(posObj1 * 2.) * 2.2);
   float pointSize = logosPointSize;
   gl_PointSize = pointSize * 2.;
 
   float alphaNoise1 = (brownian1 - 0.4) + inversedZDepth;
 
-  float logosAlpha = mix(getGelAlpha(zDepth), getPyAlpha(zDepth), logosTransitionAmount);
+  float logosAlpha = getGelAlpha(zDepth);
   logosAlpha += alphaNoise1 - 0.5;
   float pointAlpha = logosAlpha;
   pointAlpha = pointAlpha * uAlpha;
 
-  vec3 logosColor = mix(getGelColor(zDepth), getPyColor(zDepth), logosTransitionAmount);
+  vec3 logosColor = getGelColor(zDepth);
   vec3 pointColor = logosColor;
 
   vColor = vec4(pointColor, pointAlpha);

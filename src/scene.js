@@ -7,7 +7,6 @@ const canvas = document.getElementById('heroImage')
 
 const COUNT = 100000
 const obj1 = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
-const obj2 = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
 
 const generateFibonacciSphere = (count, jitterAmount = 0.05) => {
   const positions = new Float32Array(count * 3)
@@ -37,7 +36,7 @@ const generateFibonacciSphere = (count, jitterAmount = 0.05) => {
   return positions
 }
 
-const sphere = generateFibonacciSphere(obj1.COUNT)
+const sphere = generateFibonacciSphere(obj1.COUNT, 1)
 
 // Import noise function from utils if not already available
 const noise3D = (x, y, z) => {
@@ -155,12 +154,6 @@ const distortSphere = (basePositions, options = {}) => {
 
 // Create first distorted sphere
 const distortedSphere = distortSphere(sphere, {
-  scale: 6.0,
-  noiseStrength: 0.25,
-})
-
-// Create second distorted sphere with different parameters
-const distortedSphere2 = distortSphere(sphere, {
   scale: 5.5,
   noiseStrength: 0.25,
   offsetX: 5.0,
@@ -206,11 +199,6 @@ const obj1Bounds = calculateMinMax(distortedSphere)
 obj1.POS_MIN = obj1Bounds.min
 obj1.POS_MAX = obj1Bounds.max
 
-obj2.POS = distortedSphere2
-const obj2Bounds = calculateMinMax(distortedSphere2)
-obj2.POS_MIN = obj2Bounds.min
-obj2.POS_MAX = obj2Bounds.max
-
 const regl = createREGL({
   canvas,
   onDone: (err, regl) => {
@@ -223,7 +211,7 @@ const regl = createREGL({
       regl,
     })
 
-    const drawParticles = createDrawParticlesCommand(regl, { obj1, obj2 })
+    const drawParticles = createDrawParticlesCommand(regl, { obj1 })
 
     resizeRegl(canvas, regl, [])
 
@@ -245,15 +233,4 @@ const regl = createREGL({
       ),
     )
   },
-})
-
-import FPSMeter from 'fps-m'
-new FPSMeter({ ui: true }).start()
-
-canvas.addEventListener('dblclick', () => {
-  if (!document.fullscreenElement) {
-    canvas.requestFullscreen()
-  } else {
-    document.exitFullscreen()
-  }
 })
