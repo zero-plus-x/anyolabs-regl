@@ -12,6 +12,9 @@ uniform vec3 obj1PosMax;
 
 uniform float obj1Scale;
 
+uniform float uTaperFactor;
+
+
 uniform float uAlpha;
 uniform float uAmount;
 
@@ -104,42 +107,19 @@ float getGelPointSize(float factor) {
   return mix(objects.obj1.pointSize.value[0], objects.obj1.pointSize.value[1], mapBezier(factor, objects.obj1.pointSize.bezier[0], objects.obj1.pointSize.bezier[1], objects.obj1.pointSize.bezier[2], objects.obj1.pointSize.bezier[3]));
 }
 
-float getLogoTransitionValue(float percentage) {
-  vec2 keyframes[5];
-  keyframes[0] = vec2(0., 0.1);
-  keyframes[1] = vec2(0.15, 0.2);
-  keyframes[2] = vec2(0.5, 0.5);
-  keyframes[3] = vec2(0.85, 0.8);
-  keyframes[4] = vec2(1., 0.9);
+vec3 applyTaper(vec3 pos, float taperAxisMin, float taperAxisMax) {
+    // Compute normalized taper factor (0 to 1) along Y axis
+    float t = (pos.y - taperAxisMin) / (taperAxisMax - taperAxisMin);
+    t = clamp(t, 0.0, 1.0); // ensure within range
 
-  // Handle edge cases
-  if(percentage <= keyframes[0].x) {
-    return keyframes[0].y;
-  }
-  if(percentage >= keyframes[4].x) {
-    return keyframes[4].y;
-  }
+    // Linear taper scaling factor
+    float scale = 1.0 + uTaperFactor * t;
 
-  // Iterate over keyframes to find the bracketing pair
-  for(int i = 0; i < 4; i++) {
-    vec2 keyframe1 = keyframes[i];
-    vec2 keyframe2 = keyframes[i + 1];
+    // Apply non-uniform scale to X and Z only
+    pos.y *= scale;
+    pos.z *= scale;
 
-    if(percentage >= keyframe1.x && percentage <= keyframe2.x) {
-      // If exactly on a keyframe, return that value
-      if(percentage == keyframe1.x)
-        return keyframe1.y;
-      if(percentage == keyframe2.x)
-        return keyframe2.y;
-
-      // Interpolate between the two values
-      float t = (percentage - keyframe1.x) / (keyframe2.x - keyframe1.x);
-      return mix(keyframe1.y, keyframe2.y, t);
-    }
-  }
-
-  // Return a default value in case no match is found (should not happen)
-  return 0.0;
+    return pos;
 }
 
 void main() {
@@ -189,7 +169,12 @@ void main() {
   finalPosition += finalNoiseConstant;
   finalPosition.z += amount * (brownian1 * 0.15 - 0.15);
   mat4 modelViewMatrix = modelMatrix * viewMatrix;
+
+  vec3 distortedPos = applyTaper(finalPosition.xyz, -3.0, 3.0);
+  finalPosition.xyz = distortedPos;
+
   position = projectionMatrix * modelViewMatrix * finalPosition;
+  
   gl_Position = position;
 
   float logosPointSize = getGelPointSize(zDepth) - length(snoise3(posObj1 * 2.) * 2.2);

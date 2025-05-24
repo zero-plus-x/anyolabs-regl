@@ -9,13 +9,17 @@ const canvas = document.getElementById('heroImage')
 let targetCameraX = 0
 let currentCameraX = 0
 let lastTime = 0
+let targetTaperFactor = 1.
+let currentTaperFactor = 1.
 
 const updateMousePosition = (event) => {
   const rect = canvas.getBoundingClientRect()
   const x = event.clientX - rect.left
   const width = rect.width
   // Map from [0, width] to [1, -1] (leftmost = 1, rightmost = -1)
-  targetCameraX = ((x / width) * 2 - 1) * 0.25
+  const f = x / width;
+  targetCameraX = (f * 2 - 1) * 0.25
+  targetTaperFactor = (Math.abs(f - 0.5)) * 5.;
 }
 
 canvas.addEventListener('mousemove', updateMousePosition)
@@ -238,6 +242,7 @@ const regl = createREGL({
       // Smooth interpolation - lerp towards target with fixed speed
       const lerpSpeed = 1 - Math.pow(0.001, deltaTime) // Exponential decay over 500ms
       currentCameraX += (targetCameraX - currentCameraX) * lerpSpeed
+      currentTaperFactor += (targetTaperFactor - currentTaperFactor) * lerpSpeed
       setupCamera(
         {
           cameraPosition: [currentCameraX, 1, 3],
@@ -252,6 +257,7 @@ const regl = createREGL({
             uAmount: 1,
             color0: [0, 94, 255].map(x => x / 255),
             color1: [141, 0, 203].map(x => x / 255),
+            uTaperFactor: currentTaperFactor,
           })
         },
       )

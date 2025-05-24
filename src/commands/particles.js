@@ -17,6 +17,7 @@ export const createDrawParticlesCommand = (regl, data) => {
         projectionMatrix: regl.context('projectionMatrix'),
         uAlpha: regl.prop('uAlpha'),
         uAmount: regl.prop('uAmount'),
+        uTaperFactor: regl.prop('uTaperFactor'),
 
         "objects.obj1.alpha.value": [1, 0],
         "objects.obj1.alpha.bezier": [0, 0, 0.5, 0.5],
@@ -31,7 +32,6 @@ export const createDrawParticlesCommand = (regl, data) => {
         transitionBezier: [ 0.0, 0, 1, 1 ],
 
         uCurrentTime: ({ time }) => time,
-        uLoopTime: ({ time }) => time,
 
         obj1Scale: 1.2,
 
