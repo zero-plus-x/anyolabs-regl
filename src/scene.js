@@ -228,6 +228,8 @@ const regl = createREGL({
             position: [0, 0, 0],
             uAlpha: 1,
             uAmount: 1,
+            color0: [0, 94, 255].map(x => x / 255),
+            color1: [141, 0, 203].map(x => x / 255),
           })
         },
       ),

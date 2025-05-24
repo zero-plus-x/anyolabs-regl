@@ -24,10 +24,8 @@ export const createDrawParticlesCommand = (regl, data) => {
         "objects.obj1.pointSize.value": [2, 0.01],
         "objects.obj1.pointSize.bezier": [0, 0, 0.5, 0.5],
         
-        // front_gel_color: "#005EFF",
-        // back_gel_color: "#400080",
-        "objects.obj1.color.value[0]": [0x00,0x5E,0xFF].map(x => x / 255),
-        "objects.obj1.color.value[1]": [0x40, 0x00, 0x80].map(x => x / 255),
+        "objects.obj1.color.value[0]": regl.prop('color0'),
+        "objects.obj1.color.value[1]": regl.prop('color1'),
         "objects.obj1.color.bezier": [0.2156, 0.964, 0.6969, 0.784],
  
         transitionBezier: [ 0.0, 0, 1, 1 ],
