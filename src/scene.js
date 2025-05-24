@@ -18,23 +18,6 @@ const updateMousePosition = (event) => {
   targetCameraX = ((x / width) * 2 - 1) * 0.25
 }
 
-const updateOrientation = (event) => {
-  if (event.gamma !== null) {
-    // Map gamma from [-30, 30] to [1, -1]
-    const clampedGamma = Math.max(-30, Math.min(30, event.gamma))
-    targetCameraX = -clampedGamma / 30
-  }
-}
-
-// Check if device orientation is available
-if (window.DeviceOrientationEvent) {
-  // Request permission for iOS 13+
-  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-    // We'll add permission request later if needed
-  }
-  window.addEventListener('deviceorientation', updateOrientation)
-}
-
 canvas.addEventListener('mousemove', updateMousePosition)
 
 const COUNT = 100000
