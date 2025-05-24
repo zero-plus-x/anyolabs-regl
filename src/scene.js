@@ -5,6 +5,17 @@ import { createSetupCamera } from './commands/camera'
 
 const canvas = document.getElementById('heroImage')
 
+// Mouse tracking for camera control
+let mouseX = 0
+const updateMousePosition = (event) => {
+  const rect = canvas.getBoundingClientRect()
+  const x = event.clientX - rect.left
+  const width = rect.width
+  // Map from [0, width] to [-1, 1]
+  mouseX = ((x / width) * 2 ) * 0.25
+}
+canvas.addEventListener('mousemove', updateMousePosition)
+
 const COUNT = 100000
 const obj1 = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
 
@@ -218,7 +229,7 @@ const regl = createREGL({
     regl.frame(() =>
       setupCamera(
         {
-          cameraPosition: [0, 1, 3],
+          cameraPosition: [mouseX, 1, 3],
           target: [0, 0, 0],
         },
         () => {
