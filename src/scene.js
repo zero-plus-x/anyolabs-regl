@@ -5,15 +5,36 @@ import { createSetupCamera } from './commands/camera'
 
 const canvas = document.getElementById('heroImage')
 
-// Mouse tracking for camera control
-let mouseX = 0
+// Mouse and orientation tracking for camera control
+let targetCameraX = 0
+let currentCameraX = 0
+let lastTime = 0
+
 const updateMousePosition = (event) => {
   const rect = canvas.getBoundingClientRect()
   const x = event.clientX - rect.left
   const width = rect.width
-  // Map from [0, width] to [-1, 1]
-  mouseX = ((x / width) * 2 ) * 0.25
+  // Map from [0, width] to [1, -1] (leftmost = 1, rightmost = -1)
+  targetCameraX = ((x / width) * 2 - 1) * 0.25
 }
+
+const updateOrientation = (event) => {
+  if (event.gamma !== null) {
+    // Map gamma from [-30, 30] to [1, -1]
+    const clampedGamma = Math.max(-30, Math.min(30, event.gamma))
+    targetCameraX = -clampedGamma / 30
+  }
+}
+
+// Check if device orientation is available
+if (window.DeviceOrientationEvent) {
+  // Request permission for iOS 13+
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // We'll add permission request later if needed
+  }
+  window.addEventListener('deviceorientation', updateOrientation)
+}
+
 canvas.addEventListener('mousemove', updateMousePosition)
 
 const COUNT = 100000
@@ -226,10 +247,17 @@ const regl = createREGL({
 
     resizeRegl(canvas, regl, [])
 
-    regl.frame(() =>
+    regl.frame(({ time }) => {
+      // Calculate delta time
+      const deltaTime = lastTime === 0 ? 0.016 : time - lastTime
+      lastTime = time
+      
+      // Smooth interpolation - lerp towards target with fixed speed
+      const lerpSpeed = 1 - Math.pow(0.001, deltaTime) // Exponential decay over 500ms
+      currentCameraX += (targetCameraX - currentCameraX) * lerpSpeed
       setupCamera(
         {
-          cameraPosition: [mouseX, 1, 3],
+          cameraPosition: [currentCameraX, 1, 3],
           target: [0, 0, 0],
         },
         () => {
@@ -243,7 +271,7 @@ const regl = createREGL({
             color1: [141, 0, 203].map(x => x / 255),
           })
         },
-      ),
-    )
+      )
+    })
   },
 })
