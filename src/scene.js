@@ -39,25 +39,26 @@ const generateFibonacciSphere = (count, jitterAmount = 0.05) => {
 const generateGridSphere = (count, jitterAmount = 0.05) => {
   const positions = new Float32Array(count * 3)
   
-  // Calculate grid dimensions - we want roughly equal distribution in u and v
-  const uResolution = Math.ceil(Math.sqrt(count * 2)) // More samples in longitude
-  const vResolution = Math.ceil(count / uResolution)  // Fewer in latitude
+  // Calculate grid dimensions for even distribution
+  const uResolution = Math.ceil(Math.sqrt(count * Math.PI)) // longitude samples
+  const vResolution = Math.ceil(count / uResolution)        // latitude samples
   
   let index = 0
   for (let i = 0; i < uResolution && index < count; i++) {
     for (let j = 0; j < vResolution && index < count; j++) {
-      // Map to spherical coordinates
-      const u = i / (uResolution - 1) // longitude [0, 1]
-      const v = j / (vResolution - 1) // latitude [0, 1]
+      // Map to normalized coordinates with proper spacing
+      const u = (i + 0.5) / uResolution  // longitude [0, 1] with offset
+      const v = (j + 0.5) / vResolution  // latitude [0, 1] with offset
       
       // Convert to spherical coordinates
-      const phi = u * 2 * Math.PI        // azimuth [0, 2π]
-      const theta = v * Math.PI          // polar angle [0, π]
+      const phi = u * 2 * Math.PI                    // azimuth [0, 2π]
+      const theta = Math.acos(1 - 2 * v)            // polar angle using uniform distribution
       
       // Convert to Cartesian coordinates on unit sphere
-      const x = Math.sin(theta) * Math.cos(phi)
+      const sinTheta = Math.sin(theta)
+      const x = sinTheta * Math.cos(phi)
       const y = Math.cos(theta)
-      const z = Math.sin(theta) * Math.sin(phi)
+      const z = sinTheta * Math.sin(phi)
       
       // Add jitter to break up the perfect grid
       const jitter = jitterAmount
@@ -230,8 +231,8 @@ const calculateMinMax = (positions) => {
 }
 
 // Set positions and calculate bounds
-obj1.POS = distortedSphere
-const obj1Bounds = calculateMinMax(distortedSphere)
+obj1.POS = sphere
+const obj1Bounds = calculateMinMax(sphere)
 obj1.POS_MIN = obj1Bounds.min
 obj1.POS_MAX = obj1Bounds.max
 
@@ -254,7 +255,7 @@ const regl = createREGL({
     regl.frame(() =>
       setupCamera(
         {
-          cameraPosition: [0, 1, 3],
+          cameraPosition: [0, 2, 3],
           target: [0, 0, 0],
         },
         () => {
