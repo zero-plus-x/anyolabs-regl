@@ -36,7 +36,43 @@ const generateFibonacciSphere = (count, jitterAmount = 0.05) => {
   return positions
 }
 
-const sphere = generateFibonacciSphere(obj1.COUNT, 1)
+const generateGridSphere = (count, jitterAmount = 0.05) => {
+  const positions = new Float32Array(count * 3)
+  
+  // Calculate grid dimensions - we want roughly equal distribution in u and v
+  const uResolution = Math.ceil(Math.sqrt(count * 2)) // More samples in longitude
+  const vResolution = Math.ceil(count / uResolution)  // Fewer in latitude
+  
+  let index = 0
+  for (let i = 0; i < uResolution && index < count; i++) {
+    for (let j = 0; j < vResolution && index < count; j++) {
+      // Map to spherical coordinates
+      const u = i / (uResolution - 1) // longitude [0, 1]
+      const v = j / (vResolution - 1) // latitude [0, 1]
+      
+      // Convert to spherical coordinates
+      const phi = u * 2 * Math.PI        // azimuth [0, 2π]
+      const theta = v * Math.PI          // polar angle [0, π]
+      
+      // Convert to Cartesian coordinates on unit sphere
+      const x = Math.sin(theta) * Math.cos(phi)
+      const y = Math.cos(theta)
+      const z = Math.sin(theta) * Math.sin(phi)
+      
+      // Add jitter to break up the perfect grid
+      const jitter = jitterAmount
+      positions[index * 3] = x + (Math.random() - 0.5) * jitter
+      positions[index * 3 + 1] = y + (Math.random() - 0.5) * jitter
+      positions[index * 3 + 2] = z + (Math.random() - 0.5) * jitter
+      
+      index++
+    }
+  }
+  
+  return positions
+}
+
+const sphere = generateGridSphere(obj1.COUNT, 0.0)
 
 // Import noise function from utils if not already available
 const noise3D = (x, y, z) => {

@@ -176,8 +176,8 @@ void main() {
   p2.y += uCurrentTime * .2;
   p2 *= 1.;
 
-  vec4 snoiseNoiseConstant = vec4(snoise3(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1 * (1. - 0.);
-  vec4 curlNoiseConstant = vec4(curl(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1 * (1. - 0.);
+  vec4 snoiseNoiseConstant = vec4(snoise3(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1;
+  vec4 curlNoiseConstant = vec4(curl(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1;
   vec4 finalNoiseConstant = snoiseNoiseConstant + curlNoiseConstant;
 
 
@@ -186,8 +186,8 @@ void main() {
   vec3 pos = position.xyz;
 
   vec4 finalPosition = position;
-  finalPosition += finalNoiseConstant;
-  finalPosition.z += amount * (brownian1 * 0.15 - 0.15);
+  // finalPosition += finalNoiseConstant;
+  // finalPosition.z += amount * (brownian1 * 0.15 - 0.15);
   mat4 modelViewMatrix = modelMatrix * viewMatrix;
   position = projectionMatrix * modelViewMatrix * finalPosition;
   gl_Position = position;
