@@ -6,6 +6,9 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
+uniform vec3 cameraPosition;
+uniform vec3 target;
+
 attribute vec3 posObj1;
 uniform vec3 obj1PosMin;
 uniform vec3 obj1PosMax;
@@ -119,19 +122,12 @@ vec3 hsv2rgb(vec3 c) {
   return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
-float calcTransitionFactor(float blendAmount) {
-  float curlAmount = (1. - abs(blendAmount - 0.5) * 2.);
-  curlAmount = clamp(curlAmount * 3., 0., 1.);
-  return curlAmount;
-}
-
 float getGelAlpha(float factor) {
   return mix(objects.obj1.alpha.value[0], objects.obj1.alpha.value[1], mapBezier(factor, objects.obj1.alpha.bezier[0], objects.obj1.alpha.bezier[1], objects.obj1.alpha.bezier[2], objects.obj1.alpha.bezier[3]));
 }
 float getGelPointSize(float factor) {
   return mix(objects.obj1.pointSize.value[0], objects.obj1.pointSize.value[1], mapBezier(factor, objects.obj1.pointSize.bezier[0], objects.obj1.pointSize.bezier[1], objects.obj1.pointSize.bezier[2], objects.obj1.pointSize.bezier[3]));
 }
-
 
 void main() {
   float logosTransitionAmount = 0.0;
@@ -164,41 +160,47 @@ void main() {
   p1 *= .3;
   p1.y += uCurrentTime / 1.;
   vec3 p2 = position.xyz;
+  // p2.x *= .3;
+  p2 *= 0.75;
+  p2.y *= 2.;
   p2.y += uCurrentTime * .2;
   p2 *= 1.;
 
-  vec4 snoiseNoiseConstant = vec4(snoise3(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.15;
-  vec3 curlNoiseConstant = curl(p2) * 1.0 / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.5;
-  vec4 finalNoiseConstant = snoiseNoiseConstant;// + curlNoiseConstant;
+  vec3 snoiseNoiseConstant = (snoise3(p2) * 5.0) / (30.) * 0.15;
+  snoiseNoiseConstant *= snoiseNoiseConstant;
+  vec3 finalNoiseConstant = snoiseNoiseConstant * 140.;
 
 
-  float brownian1 = fbm(position.xyz + vec3(0., uCurrentTime / 8., 0.));
+  // float brownian1 = fbm(position.xyz + vec3(0., uCurrentTime / 8., 0.));
+  // vec3 pos2 = position.xyz;
+  // pos2.y *= 5.;
+  // float brownian2 = fbm(pos2 + vec3(0., uCurrentTime / 8., 0.));
 
   vec3 pos = position.xyz;
 
   vec4 finalPosition = position;
-  finalPosition += finalNoiseConstant;
-  finalPosition.z += amount * (brownian1 * 2. - 1.);
+  finalPosition.xyz += finalNoiseConstant;
+  // finalPosition.z += amount * (brownian1 * 2. - 1.);
   mat4 modelViewMatrix = modelMatrix * viewMatrix;
   position = projectionMatrix * modelViewMatrix * finalPosition;
   gl_Position = position;
 
 
-  finalPosition.y *= 3.;
-  float cn = cnoise(finalPosition.xyz);
-  float logosPointSize = getGelPointSize(zDepth) - cn * 2.;
-  float pointSize = 1.4;//logosPointSize;
-  gl_PointSize = pointSize;
+  // finalPosition.y *= 5.;
+  // float cn = cnoise(finalPosition.xyz);
+  // float logosPointSize = getGelPointSize(zDepth) - brownian2 * 2.;
+  // float pointSize = 1.4;//logosPointSize;
+  gl_PointSize = 1.5;
 
-  float alphaNoise1 = (cn - 0.5) + inversedZDepth;
+  float alphaNoise1 = (length(snoiseNoiseConstant) - 0.5) + inversedZDepth;
 
-  float logosAlpha = getGelAlpha(zDepth);
+  float logosAlpha = zDepth * 2.;
   logosAlpha += alphaNoise1 - 0.5;
-  float pointAlpha = logosAlpha;
+  float pointAlpha = 1.;
   pointAlpha = pointAlpha * uAlpha;
 
   vec4 logosColor = getGradientValue(colors, zDepth);
   vec3 pointColor = logosColor.rgb;
 
-  vColor = vec4(pointColor, logosAlpha);
+  vColor = vec4(pointColor, zDepth);
 }

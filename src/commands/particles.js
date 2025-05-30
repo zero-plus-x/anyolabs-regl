@@ -18,6 +18,9 @@ export const createDrawParticlesCommand = (regl, data) => {
         uAlpha: regl.prop('uAlpha'),
         uAmount: regl.prop('uAmount'),
 
+        cameraPosition: regl.prop('cameraPosition'),
+        target: regl.prop('target'),
+
         "objects.obj1.alpha.value": [1, 0],
         "objects.obj1.alpha.bezier": [0, 0, 0.5, 0.5],
 

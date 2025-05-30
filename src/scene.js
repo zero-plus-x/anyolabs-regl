@@ -65,7 +65,52 @@ const generateUniformSphere = (count, jitterAmount = 0.05) => {
   return positions
 }
 
-const sphere = generateUniformSphere(obj1.COUNT, 0.0)
+const generateCurvatureAwareGridSphere = (count, jitterAmount = 0.05) => {
+  const positions = new Float32Array(count * 3)
+  
+  // Calculate grid dimensions - start with square grid as base
+  const baseResolution = Math.ceil(Math.sqrt(count))
+  const latitudeBands = baseResolution
+  const longitudeSegments = Math.ceil(count / latitudeBands)
+  
+  let index = 0
+  for (let lat = 0; lat < latitudeBands && index < count; lat++) {
+    // Calculate latitude position with equal area distribution
+    // Use cosine distribution to account for sphere curvature
+    const v = (lat + 0.5) / latitudeBands
+    const theta = Math.acos(1 - 2 * v)  // polar angle with equal area
+    
+    // Calculate how many longitude segments we need for this latitude
+    // At poles (sin(theta) ≈ 0), we need fewer points
+    // At equator (sin(theta) ≈ 1), we need more points
+    const circumference = Math.sin(theta)
+    const adjustedLongSegments = Math.max(1, Math.round(longitudeSegments * circumference))
+    
+    for (let lon = 0; lon < adjustedLongSegments && index < count; lon++) {
+      // Distribute longitude points evenly around this latitude band
+      const u = (lon + 0.5) / adjustedLongSegments
+      const phi = u * 2 * Math.PI  // azimuth angle
+      
+      // Convert to Cartesian coordinates
+      const sinTheta = Math.sin(theta)
+      const x = sinTheta * Math.cos(phi)
+      const y = Math.cos(theta)  // y is up
+      const z = sinTheta * Math.sin(phi)
+      
+      // Add jitter to break up perfect grid patterns
+      const jitter = jitterAmount
+      positions[index * 3] = x + (Math.random() - 0.5) * jitter
+      positions[index * 3 + 1] = y + (Math.random() - 0.5) * jitter
+      positions[index * 3 + 2] = z + (Math.random() - 0.5) * jitter
+      
+      index++
+    }
+  }
+  
+  return positions
+}
+
+const sphere = generateCurvatureAwareGridSphere(obj1.COUNT, 0.0)
 
 // Import noise function from utils if not already available
 const noise3D = (x, y, z) => {
@@ -247,13 +292,15 @@ const regl = createREGL({
     regl.frame(() =>
       setupCamera(
         {
-          cameraPosition: [0, 2, 4.5],
+          cameraPosition: [0, 5, 4.5],
           target: [0, 0, 0],
         },
         () => {
           regl.clear({ color: [0, 0, 0, 0], framebuffer: null })
 
           drawParticles({
+            cameraPosition: [0, 5, 4.5],
+            target: [0, 0, 0],
             position: [0, 0, 0],
             uAlpha: 1,
             uAmount: 1,
