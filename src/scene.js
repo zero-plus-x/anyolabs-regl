@@ -59,21 +59,20 @@ const regl = createREGL({
             maxCameraDistance: maxDist,
             colors: [
               {
-                pos: 0,
-                val: hexRgbaToNormalized('#005eff'),
+                pos: 0.3,
+                val: hexRgbaToNormalized('#52ffe6'),
               },
               {
                 pos: 0.4,
-                val: hexRgbaToNormalized('#ff0000'),
+                val: hexRgbaToNormalized('#00b5ff'),
               },
               {
-                pos: 0.6,
-                // Make next line color value orange
-                val: hexRgbaToNormalized('#ff6b00'),
+                pos: 0.8,
+                val: hexRgbaToNormalized('#0061ff'),
               },
               {
                 pos: 1,
-                val: hexRgbaToNormalized('#8d00cb'),
+                val: hexRgbaToNormalized('#8000ff'),
               },
             ],
           })

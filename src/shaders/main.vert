@@ -157,9 +157,9 @@ void main() {
   p2.y += uCurrentTime * .2;
   p2 *= 1.;
 
-  vec3 snoiseNoiseConstant = (snoise3(p2) * 5.0) / (30.) * 0.15;
+  vec3 snoiseNoiseConstant = (snoise3(p2) * 5.0) / (30.);
   snoiseNoiseConstant *= snoiseNoiseConstant;
-  vec3 finalNoiseConstant = snoiseNoiseConstant * 140.;
+  vec3 finalNoiseConstant = snoiseNoiseConstant * 5.;
 
   vec3 pos = position.xyz;
 
@@ -171,10 +171,10 @@ void main() {
 
   gl_PointSize = 1.5;
 
-  float alphaNoise1 = (length(snoiseNoiseConstant) - 0.5) + inversedZDepth;
+  float alphaNoise1 = (length(finalNoiseConstant) - 0.5) + zDepth;
   float pointAlpha = (zDepth + alphaNoise1) * uAlpha;
 
-  vec4 logosColor = getGradientValue(colors, zDepth);
+  vec4 logosColor = getGradientValue(colors, length(snoise3(p2)) / 2. + zDepth / 2.);
   vec3 pointColor = logosColor.rgb;
 
   vColor = vec4(pointColor, pointAlpha );
