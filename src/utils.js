@@ -82,3 +82,16 @@ export function hexColorToRgb(hex) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
   return result ? [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255] : null
 }
+
+export function hexRgbaToNormalized(hex) {
+  // Support both #RRGGBB and #RRGGBBAA formats
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})?$/i.exec(hex)
+  if (!result) return null
+  
+  const r = parseInt(result[1], 16) / 255
+  const g = parseInt(result[2], 16) / 255
+  const b = parseInt(result[3], 16) / 255
+  const a = result[4] ? parseInt(result[4], 16) / 255 : 1.0
+  
+  return [r, g, b, a]
+}

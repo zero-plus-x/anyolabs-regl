@@ -23,11 +23,16 @@ export const createDrawParticlesCommand = (regl, data) => {
 
         "objects.obj1.pointSize.value": [2, 0.01],
         "objects.obj1.pointSize.bezier": [0, 0, 0.5, 0.5],
-        
-        "objects.obj1.color.value[0]": regl.prop('color0'),
-        "objects.obj1.color.value[1]": regl.prop('color1'),
-        "objects.obj1.color.bezier": [0.2156, 0.964, 0.6969, 0.784],
- 
+
+        "colors[0].val": (_, {colors}) => colors[0].val,
+        "colors[1].val": (_, {colors}) => colors[1].val,
+        "colors[2].val": (_, {colors}) => colors[2].val,
+        "colors[3].val": (_, {colors}) => colors[3].val,
+        "colors[0].pos": (_, {colors}) => colors[0].pos,
+        "colors[1].pos": (_, {colors}) => colors[1].pos,
+        "colors[2].pos": (_, {colors}) => colors[2].pos,
+        "colors[3].pos": (_, {colors}) => colors[3].pos,
+
         transitionBezier: [ 0.0, 0, 1, 1 ],
 
         uCurrentTime: ({ time }) => time,

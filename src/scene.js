@@ -1,5 +1,5 @@
 import createREGL from 'regl'
-import { resizeRegl } from './utils'
+import { resizeRegl, hexRgbaToNormalized } from './utils'
 import { createDrawParticlesCommand } from './commands/particles'
 import { createSetupCamera } from './commands/camera'
 
@@ -255,7 +255,7 @@ const regl = createREGL({
     regl.frame(() =>
       setupCamera(
         {
-          cameraPosition: [0, 2, 3],
+          cameraPosition: [0, 2, 4.5],
           target: [0, 0, 0],
         },
         () => {
@@ -265,8 +265,25 @@ const regl = createREGL({
             position: [0, 0, 0],
             uAlpha: 1,
             uAmount: 1,
-            color0: [0, 94, 255].map(x => x / 255),
-            color1: [141, 0, 203].map(x => x / 255),
+            colors: [
+              {
+                pos: 0,
+                val: hexRgbaToNormalized('#005eff'),
+              },
+              {
+                pos: 0.4,
+                val: hexRgbaToNormalized('#ff0000'),
+              },
+              {
+                pos: 0.6,
+                // Make next line color value orange
+                val: hexRgbaToNormalized('#ff6b00'),
+              },
+              {
+                pos: 1,
+                val: hexRgbaToNormalized('#8d00cb'),
+              },
+            ],
           })
         },
       ),

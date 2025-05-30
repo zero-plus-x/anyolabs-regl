@@ -32,15 +32,9 @@ struct ValueWithCurve {
   vec4 bezier;
 };
 
-struct ColorWithCurve {
-  vec3 value[2];
-  vec4 bezier;
-};
-
 struct ObjectSettings {
   ValueWithCurve alpha;
   ValueWithCurve pointSize;
-  ColorWithCurve color;
 };
 
 struct Objects {
@@ -48,6 +42,42 @@ struct Objects {
 };
 
 uniform Objects objects;
+
+
+struct GradientStep {
+  vec4 val;
+  float pos;
+};
+
+uniform GradientStep colors[4];
+
+vec4 getGradientValue(GradientStep values[4], float percentage) {
+  // Handle edge cases
+  if(percentage <= values[0].pos) {
+    return values[0].val;
+  }
+  if(percentage >= values[3].pos) {
+    return values[3].val;
+  }
+
+  // Iterate over values to find the bracketing pair
+  for(int i = 0; i < 3; i++) {
+    if(percentage >= values[i].pos && percentage <= values[i + 1].pos) {
+      // If exactly on a value, return that value
+      if(percentage == values[i].pos)
+        return values[i].val;
+      if(percentage == values[i + 1].pos)
+        return values[i + 1].val;
+
+      // Interpolate between the two values
+      float t = (percentage - values[i].pos) / (values[i + 1].pos - values[i].pos);
+      return mix(values[i].val, values[i + 1].val, t);
+    }
+  }
+
+  // Return a default value in case no match is found (should not happen)
+  return vec4(0.0);
+}
 
 float fbmScaleScalar = 2.0;
 #define FBM_SCALE_SCALAR fbmScaleScalar
@@ -94,9 +124,6 @@ float calcTransitionFactor(float blendAmount) {
   return curlAmount;
 }
 
-vec3 getGelColor(float factor) {
-  return mix(objects.obj1.color.value[0], objects.obj1.color.value[1], mapBezier(factor, objects.obj1.color.bezier[0], objects.obj1.color.bezier[1], objects.obj1.color.bezier[2], objects.obj1.color.bezier[3]));
-}
 float getGelAlpha(float factor) {
   return mix(objects.obj1.alpha.value[0], objects.obj1.alpha.value[1], mapBezier(factor, objects.obj1.alpha.bezier[0], objects.obj1.alpha.bezier[1], objects.obj1.alpha.bezier[2], objects.obj1.alpha.bezier[3]));
 }
@@ -104,43 +131,6 @@ float getGelPointSize(float factor) {
   return mix(objects.obj1.pointSize.value[0], objects.obj1.pointSize.value[1], mapBezier(factor, objects.obj1.pointSize.bezier[0], objects.obj1.pointSize.bezier[1], objects.obj1.pointSize.bezier[2], objects.obj1.pointSize.bezier[3]));
 }
 
-float getLogoTransitionValue(float percentage) {
-  vec2 keyframes[5];
-  keyframes[0] = vec2(0., 0.1);
-  keyframes[1] = vec2(0.15, 0.2);
-  keyframes[2] = vec2(0.5, 0.5);
-  keyframes[3] = vec2(0.85, 0.8);
-  keyframes[4] = vec2(1., 0.9);
-
-  // Handle edge cases
-  if(percentage <= keyframes[0].x) {
-    return keyframes[0].y;
-  }
-  if(percentage >= keyframes[4].x) {
-    return keyframes[4].y;
-  }
-
-  // Iterate over keyframes to find the bracketing pair
-  for(int i = 0; i < 4; i++) {
-    vec2 keyframe1 = keyframes[i];
-    vec2 keyframe2 = keyframes[i + 1];
-
-    if(percentage >= keyframe1.x && percentage <= keyframe2.x) {
-      // If exactly on a keyframe, return that value
-      if(percentage == keyframe1.x)
-        return keyframe1.y;
-      if(percentage == keyframe2.x)
-        return keyframe2.y;
-
-      // Interpolate between the two values
-      float t = (percentage - keyframe1.x) / (keyframe2.x - keyframe1.x);
-      return mix(keyframe1.y, keyframe2.y, t);
-    }
-  }
-
-  // Return a default value in case no match is found (should not happen)
-  return 0.0;
-}
 
 void main() {
   float logosTransitionAmount = 0.0;
@@ -203,8 +193,8 @@ void main() {
   float pointAlpha = logosAlpha;
   pointAlpha = pointAlpha * uAlpha;
 
-  vec3 logosColor = getGelColor(zDepth);
-  vec3 pointColor = logosColor;
+  vec4 logosColor = getGradientValue(colors, zDepth);
+  vec3 pointColor = logosColor.rgb;
 
   vColor = vec4(pointColor, pointAlpha);
 }
