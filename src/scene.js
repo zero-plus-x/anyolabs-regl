@@ -110,7 +110,7 @@ const generateCurvatureAwareGridSphere = (count, jitterAmount = 0.05) => {
   return positions
 }
 
-const sphere = generateCurvatureAwareGridSphere(obj1.COUNT, 0.0)
+const sphere = generateUniformSphere(obj1.COUNT, 0.0)
 
 // Import noise function from utils if not already available
 const noise3D = (x, y, z) => {
