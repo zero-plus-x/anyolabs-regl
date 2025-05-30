@@ -34,6 +34,8 @@ const regl = createREGL({
     resizeRegl(canvas, regl, [])
 
     const cameraPosition = [0, 5, 4.5]
+    // const cameraPosition = [0, 1.5, 3.5]
+
     const target = [0, 0, 0]
     const { minDist, maxDist } = calculateMinMaxDistance(cameraPosition, target, obj1.POS_MIN, obj1.POS_MAX)
     const depthRange = maxDist - minDist
@@ -54,6 +56,7 @@ const regl = createREGL({
             position: [0, 0, 0],
             uAlpha: 1,
             uAmount: 1,
+            uPointSize: 1.5,
             inversedZDepth,
             minCameraDistance: minDist,
             maxCameraDistance: maxDist,

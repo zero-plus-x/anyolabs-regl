@@ -19,6 +19,7 @@ uniform float obj1Scale;
 
 uniform float uAlpha;
 uniform float uAmount;
+uniform float uPointSize;
 
 uniform float pointSizeMin;
 uniform float pointSizeMax;
@@ -170,7 +171,7 @@ void main() {
   position = projectionMatrix * modelViewMatrix * finalPosition;
   gl_Position = position;
 
-  gl_PointSize = 1.5;
+  gl_PointSize = uPointSize;
 
   float alphaNoise1 = (length(finalNoiseConstant) - 0.5) + zDepth;
   float pointAlpha = (zDepth + alphaNoise1) * uAlpha;

@@ -17,6 +17,7 @@ export const createDrawParticlesCommand = (regl, data) => {
         projectionMatrix: regl.context('projectionMatrix'),
         uAlpha: regl.prop('uAlpha'),
         uAmount: regl.prop('uAmount'),
+        uPointSize: regl.prop('uPointSize'),
 
         cameraPosition: regl.prop('cameraPosition'),
         target: regl.prop('target'),
