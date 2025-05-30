@@ -95,3 +95,80 @@ export function hexRgbaToNormalized(hex) {
   
   return [r, g, b, a]
 }
+
+
+// Calculate min/max values more efficiently
+export const calculateMinMax = (positions) => {
+  let minX = Infinity,
+    minY = Infinity,
+    minZ = Infinity
+  let maxX = -Infinity,
+    maxY = -Infinity,
+    maxZ = -Infinity
+
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i]
+    const y = positions[i + 1]
+    const z = positions[i + 2]
+
+    minX = Math.min(minX, x)
+    minY = Math.min(minY, y)
+    minZ = Math.min(minZ, z)
+
+    maxX = Math.max(maxX, x)
+    maxY = Math.max(maxY, y)
+    maxZ = Math.max(maxZ, z)
+  }
+
+  return {
+    min: [minX, minY, minZ],
+    max: [maxX, maxY, maxZ],
+  }
+}
+
+// Calculate min/max distance to object from camera based on camera and object bounds
+export const calculateMinMaxDistance = (cameraPosition, target, objPosMin, objPosMax) => {
+  // Calculate camera view vector (camera looking towards target)
+  const viewVector = [
+    target[0] - cameraPosition[0],
+    target[1] - cameraPosition[1],
+    target[2] - cameraPosition[2]
+  ]
+  
+  // Normalize view vector
+  const viewLength = Math.sqrt(viewVector[0] * viewVector[0] + viewVector[1] * viewVector[1] + viewVector[2] * viewVector[2])
+  const viewDir = [viewVector[0] / viewLength, viewVector[1] / viewLength, viewVector[2] / viewLength]
+  
+  // Calculate all 8 corners of the bounding box
+  const corners = [
+    [objPosMin[0], objPosMin[1], objPosMin[2]],
+    [objPosMax[0], objPosMin[1], objPosMin[2]],
+    [objPosMin[0], objPosMax[1], objPosMin[2]],
+    [objPosMax[0], objPosMax[1], objPosMin[2]],
+    [objPosMin[0], objPosMin[1], objPosMax[2]],
+    [objPosMax[0], objPosMin[1], objPosMax[2]],
+    [objPosMin[0], objPosMax[1], objPosMax[2]],
+    [objPosMax[0], objPosMax[1], objPosMax[2]]
+  ]
+  
+  // Calculate distances from camera to each corner along view direction
+  let minDist = Infinity
+  let maxDist = -Infinity
+  
+  corners.forEach(corner => {
+    // Vector from camera to corner
+    const toCorner = [
+      corner[0] - cameraPosition[0],
+      corner[1] - cameraPosition[1],
+      corner[2] - cameraPosition[2]
+    ]
+    
+    // Project onto view direction (dot product gives distance along view axis)
+    const distance = toCorner[0] * viewDir[0] + toCorner[1] * viewDir[1] + toCorner[2] * viewDir[2]
+    
+    minDist = Math.min(minDist, distance)
+    maxDist = Math.max(maxDist, distance)
+  })
+  
+  return { minDist, maxDist }
+}
