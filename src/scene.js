@@ -5,7 +5,7 @@ import { createSetupCamera } from './commands/camera'
 
 const canvas = document.getElementById('heroImage')
 
-const COUNT = 100000
+const COUNT = 200000
 const obj1 = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
 
 const generateFibonacciSphere = (count, jitterAmount = 0.05) => {

@@ -89,6 +89,7 @@ float fbmScaleScalar = 2.0;
 #include "lygia/generative/snoise.glsl"
 #include "lygia/generative/fbm.glsl"
 #include "lygia/generative/curl.glsl"
+#include "lygia/generative/cnoise.glsl"
 
 varying vec4 vColor;
 
@@ -167,8 +168,8 @@ void main() {
   p2 *= 1.;
 
   vec4 snoiseNoiseConstant = vec4(snoise3(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.15;
-  vec4 curlNoiseConstant = vec4(curl(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.5;
-  vec4 finalNoiseConstant = snoiseNoiseConstant + curlNoiseConstant;
+  vec3 curlNoiseConstant = curl(p2) * 1.0 / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.5;
+  vec4 finalNoiseConstant = snoiseNoiseConstant;// + curlNoiseConstant;
 
 
   float brownian1 = fbm(position.xyz + vec3(0., uCurrentTime / 8., 0.));
@@ -182,11 +183,14 @@ void main() {
   position = projectionMatrix * modelViewMatrix * finalPosition;
   gl_Position = position;
 
-  float logosPointSize = getGelPointSize(zDepth) - length(snoise3(posObj1 * 2.) * 2.2);
-  float pointSize = logosPointSize;
-  gl_PointSize = pointSize * 2.;
 
-  float alphaNoise1 = (brownian1 - 0.4) + inversedZDepth;
+  finalPosition.y *= 3.;
+  float cn = cnoise(finalPosition.xyz);
+  float logosPointSize = getGelPointSize(zDepth) - cn * 2.;
+  float pointSize = 1.4;//logosPointSize;
+  gl_PointSize = pointSize;
+
+  float alphaNoise1 = (cn - 0.5) + inversedZDepth;
 
   float logosAlpha = getGelAlpha(zDepth);
   logosAlpha += alphaNoise1 - 0.5;
@@ -196,5 +200,5 @@ void main() {
   vec4 logosColor = getGradientValue(colors, zDepth);
   vec3 pointColor = logosColor.rgb;
 
-  vColor = vec4(pointColor, pointAlpha);
+  vColor = vec4(pointColor, logosAlpha);
 }
