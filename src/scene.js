@@ -5,7 +5,7 @@ import { createSetupCamera } from './commands/camera'
 
 const canvas = document.getElementById('heroImage')
 
-const COUNT = 200000
+const COUNT = 60000
 const obj1 = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
 
 const generateFibonacciSphere = (count, jitterAmount = 0.05) => {
@@ -36,44 +36,36 @@ const generateFibonacciSphere = (count, jitterAmount = 0.05) => {
   return positions
 }
 
-const generateGridSphere = (count, jitterAmount = 0.05) => {
+const generateUniformSphere = (count, jitterAmount = 0.05) => {
   const positions = new Float32Array(count * 3)
   
-  // Calculate grid dimensions for even distribution
-  const uResolution = Math.ceil(Math.sqrt(count * Math.PI)) // longitude samples
-  const vResolution = Math.ceil(count / uResolution)        // latitude samples
-  
-  let index = 0
-  for (let i = 0; i < uResolution && index < count; i++) {
-    for (let j = 0; j < vResolution && index < count; j++) {
-      // Map to normalized coordinates with proper spacing
-      const u = (i + 0.5) / uResolution  // longitude [0, 1] with offset
-      const v = (j + 0.5) / vResolution  // latitude [0, 1] with offset
-      
-      // Convert to spherical coordinates
-      const phi = u * 2 * Math.PI                    // azimuth [0, 2π]
-      const theta = Math.acos(1 - 2 * v)            // polar angle using uniform distribution
-      
-      // Convert to Cartesian coordinates on unit sphere
-      const sinTheta = Math.sin(theta)
-      const x = sinTheta * Math.cos(phi)
-      const y = Math.cos(theta)
-      const z = sinTheta * Math.sin(phi)
-      
-      // Add jitter to break up the perfect grid
-      const jitter = jitterAmount
-      positions[index * 3] = x + (Math.random() - 0.5) * jitter
-      positions[index * 3 + 1] = y + (Math.random() - 0.5) * jitter
-      positions[index * 3 + 2] = z + (Math.random() - 0.5) * jitter
-      
-      index++
-    }
+  for (let i = 0; i < count; i++) {
+    // Use improved spiral method for uniform distribution
+    // Based on Saff & Kuijlaars algorithm for equal area distribution
+    const k = i + 0.5
+    const h = -1 + 2 * k / count  // height on sphere from -1 to 1
+    const theta = Math.acos(h)    // polar angle
+    
+    // Calculate phi using golden ratio for optimal spiral
+    const phi = (i % count) * Math.PI * (3 - Math.sqrt(5)) // golden angle
+    
+    // Convert to Cartesian coordinates
+    const sinTheta = Math.sin(theta)
+    const x = sinTheta * Math.cos(phi)
+    const y = h  // cos(theta) = h
+    const z = sinTheta * Math.sin(phi)
+    
+    // Add minimal jitter to avoid perfect patterns while maintaining uniformity
+    const jitter = jitterAmount
+    positions[i * 3] = x + (Math.random() - 0.5) * jitter
+    positions[i * 3 + 1] = y + (Math.random() - 0.5) * jitter
+    positions[i * 3 + 2] = z + (Math.random() - 0.5) * jitter
   }
   
   return positions
 }
 
-const sphere = generateGridSphere(obj1.COUNT, 0.0)
+const sphere = generateUniformSphere(obj1.COUNT, 0.0)
 
 // Import noise function from utils if not already available
 const noise3D = (x, y, z) => {
