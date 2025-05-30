@@ -273,6 +273,53 @@ const obj1Bounds = calculateMinMax(sphere)
 obj1.POS_MIN = obj1Bounds.min
 obj1.POS_MAX = obj1Bounds.max
 
+// Calculate inverse Z depth range based on camera and object bounds
+const calculateInversedZDepth = (cameraPosition, target, objPosMin, objPosMax) => {
+  // Calculate camera view vector (camera looking towards target)
+  const viewVector = [
+    target[0] - cameraPosition[0],
+    target[1] - cameraPosition[1],
+    target[2] - cameraPosition[2]
+  ]
+  
+  // Normalize view vector
+  const viewLength = Math.sqrt(viewVector[0] * viewVector[0] + viewVector[1] * viewVector[1] + viewVector[2] * viewVector[2])
+  const viewDir = [viewVector[0] / viewLength, viewVector[1] / viewLength, viewVector[2] / viewLength]
+  
+  // Calculate all 8 corners of the bounding box
+  const corners = [
+    [objPosMin[0], objPosMin[1], objPosMin[2]],
+    [objPosMax[0], objPosMin[1], objPosMin[2]],
+    [objPosMin[0], objPosMax[1], objPosMin[2]],
+    [objPosMax[0], objPosMax[1], objPosMin[2]],
+    [objPosMin[0], objPosMin[1], objPosMax[2]],
+    [objPosMax[0], objPosMin[1], objPosMax[2]],
+    [objPosMin[0], objPosMax[1], objPosMax[2]],
+    [objPosMax[0], objPosMax[1], objPosMax[2]]
+  ]
+  
+  // Calculate distances from camera to each corner along view direction
+  let minDist = Infinity
+  let maxDist = -Infinity
+  
+  corners.forEach(corner => {
+    // Vector from camera to corner
+    const toCorner = [
+      corner[0] - cameraPosition[0],
+      corner[1] - cameraPosition[1],
+      corner[2] - cameraPosition[2]
+    ]
+    
+    // Project onto view direction (dot product gives distance along view axis)
+    const distance = toCorner[0] * viewDir[0] + toCorner[1] * viewDir[1] + toCorner[2] * viewDir[2]
+    
+    minDist = Math.min(minDist, distance)
+    maxDist = Math.max(maxDist, distance)
+  })
+  
+  return { minDist, maxDist }
+}
+
 const regl = createREGL({
   canvas,
   onDone: (err, regl) => {
@@ -289,21 +336,32 @@ const regl = createREGL({
 
     resizeRegl(canvas, regl, [])
 
-    regl.frame(() =>
+    regl.frame(() => {
+      const cameraPosition = [0, 5, 4.5]
+      const target = [0, 0, 0]
+      
+      // Calculate inverse Z depth range
+      const { minDist, maxDist } = calculateInversedZDepth(cameraPosition, target, obj1.POS_MIN, obj1.POS_MAX)
+      const depthRange = maxDist - minDist
+      const inversedZDepth = depthRange > 0 ? 1.0 - ((minDist + maxDist) * 0.5 - minDist) / depthRange : 0.5
+      
       setupCamera(
         {
-          cameraPosition: [0, 5, 4.5],
-          target: [0, 0, 0],
+          cameraPosition,
+          target,
         },
         () => {
           regl.clear({ color: [0, 0, 0, 0], framebuffer: null })
 
           drawParticles({
-            cameraPosition: [0, 5, 4.5],
-            target: [0, 0, 0],
+            cameraPosition,
+            target,
             position: [0, 0, 0],
             uAlpha: 1,
             uAmount: 1,
+            inversedZDepth,
+            minCameraDistance: minDist,
+            maxCameraDistance: maxDist,
             colors: [
               {
                 pos: 0,
@@ -324,8 +382,8 @@ const regl = createREGL({
               },
             ],
           })
-        },
-      ),
-    )
+        }
+      )
+    })
   },
 })

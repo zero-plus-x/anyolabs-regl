@@ -8,6 +8,8 @@ uniform mat4 projectionMatrix;
 
 uniform vec3 cameraPosition;
 uniform vec3 target;
+uniform float minCameraDistance;
+uniform float maxCameraDistance;
 
 attribute vec3 posObj1;
 uniform vec3 obj1PosMin;
@@ -153,8 +155,22 @@ void main() {
 
   vec4 position = vec4(logosPosition, 1.);
 
-  float inversedZDepth = (position.z - posMin.z) / (posMax.z - posMin.z);
-  float zDepth = 1. - inversedZDepth;
+  // Calculate view direction (normalized vector from camera to target)
+  vec3 viewDirection = normalize(target - cameraPosition);
+  
+  // Calculate vector from camera to current particle position
+  vec3 toParticle = position.xyz - cameraPosition;
+  
+  // Project particle position onto view direction to get depth along camera axis
+  float particleDepth = dot(toParticle, viewDirection);
+  
+  // Normalize depth based on min/max camera distances (0 = closest, 1 = furthest)
+  float depthRange = maxCameraDistance - minCameraDistance;
+  float normalizedDepth = depthRange > 0.0 ? (particleDepth - minCameraDistance) / depthRange : 0.5;
+  
+  // Clamp to ensure values stay in valid range
+  float zDepth = clamp(normalizedDepth, 0.0, 1.0);
+  float inversedZDepth = 1.0 - zDepth;
 
   vec3 p1 = position.xyz;
   p1 *= .3;
@@ -194,13 +210,12 @@ void main() {
 
   float alphaNoise1 = (length(snoiseNoiseConstant) - 0.5) + inversedZDepth;
 
-  float logosAlpha = zDepth * 2.;
+  float logosAlpha = zDepth;
   logosAlpha += alphaNoise1 - 0.5;
-  float pointAlpha = 1.;
-  pointAlpha = pointAlpha * uAlpha;
+  float pointAlpha = (zDepth + alphaNoise1) * uAlpha;
 
   vec4 logosColor = getGradientValue(colors, zDepth);
   vec3 pointColor = logosColor.rgb;
 
-  vColor = vec4(pointColor, zDepth);
+  vColor = vec4(pointColor, pointAlpha );
 }
