@@ -56,7 +56,7 @@ const regl = createREGL({
             position: [0, 0, 0],
             uAlpha: 1,
             uAmount: 1,
-            uPointSize: 1.5,
+            uPointSize: 8 / minDist,
             inversedZDepth,
             minCameraDistance: minDist,
             maxCameraDistance: maxDist,
