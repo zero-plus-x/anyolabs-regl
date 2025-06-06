@@ -113,7 +113,9 @@ vec3 applyTaper(vec3 pos, float taperAxisMin, float taperAxisMax) {
     t = clamp(t, 0.0, 1.0); // ensure within range
 
     // Linear taper scaling factor
-    float scale = 1.0 + uTaperFactor * t;
+    // uTaperFactor
+    float f = 1.0;//uTaperFactor;
+    float scale = 1.0 + f * t;
 
     // Apply non-uniform scale to X and Z only
     pos.y *= scale;
@@ -136,7 +138,7 @@ void main() {
 
   float amount = 0.;
 
-  float transitionFactor = 0.;//(a + b) / 2.;
+  float transitionFactor = 0.;
   float transitionAmount = 0.;
 
   vec3 posMin = logosPosMin;
@@ -185,7 +187,7 @@ void main() {
 
   float logosAlpha = getGelAlpha(zDepth);
   logosAlpha += alphaNoise1 - 0.5;
-  float pointAlpha = logosAlpha;
+  float pointAlpha = clamp(logosAlpha * 3.0, 0., 1.);
   pointAlpha = pointAlpha * uAlpha;
 
   vec3 logosColor = getGelColor(zDepth);
