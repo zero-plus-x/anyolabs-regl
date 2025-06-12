@@ -180,7 +180,7 @@ void main() {
   gl_Position = position;
 
   float logosPointSize = getGelPointSize(zDepth) - length(snoise3(posObj1 * 2.) * 2.2);
-  float pointSize = logosPointSize;
+  float pointSize = logosPointSize < 0. ? 0. : logosPointSize;
   gl_PointSize = pointSize * 2.;
 
   float alphaNoise1 = (brownian1 - 0.4) + inversedZDepth;
