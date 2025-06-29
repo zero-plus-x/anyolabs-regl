@@ -6,17 +6,10 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
-attribute vec3 posObj1;
-uniform vec3 obj1PosMin;
-uniform vec3 obj1PosMax;
-
-uniform float obj1Scale;
-
-uniform float uTaperFactor;
-
-
 uniform float uAlpha;
 uniform float uAmount;
+
+uniform float uTaperFactor;
 
 uniform float pointSizeMin;
 uniform float pointSizeMax;
@@ -40,17 +33,20 @@ struct ColorWithCurve {
   vec4 bezier;
 };
 
-struct ObjectSettings {
+attribute vec3 sphere_position;
+
+// attribute vec3 cube_position;
+// uniform ObjectData cube_data;
+
+struct ObjectData {
   ValueWithCurve alpha;
   ValueWithCurve pointSize;
   ColorWithCurve color;
+  vec3 posMin;
+  vec3 posMax;
+  float scale;
 };
-
-struct Objects {
-  ObjectSettings obj1;
-};
-
-uniform Objects objects;
+uniform ObjectData sphere;
 
 float fbmScaleScalar = 2.0;
 #define FBM_SCALE_SCALAR fbmScaleScalar
@@ -98,13 +94,13 @@ float calcTransitionFactor(float blendAmount) {
 }
 
 vec3 getGelColor(float factor) {
-  return mix(objects.obj1.color.value[0], objects.obj1.color.value[1], mapBezier(factor, objects.obj1.color.bezier[0], objects.obj1.color.bezier[1], objects.obj1.color.bezier[2], objects.obj1.color.bezier[3]));
+  return mix(sphere.color.value[0], sphere.color.value[1], mapBezier(factor, sphere.color.bezier[0], sphere.color.bezier[1], sphere.color.bezier[2], sphere.color.bezier[3]));
 }
 float getGelAlpha(float factor) {
-  return mix(objects.obj1.alpha.value[0], objects.obj1.alpha.value[1], mapBezier(factor, objects.obj1.alpha.bezier[0], objects.obj1.alpha.bezier[1], objects.obj1.alpha.bezier[2], objects.obj1.alpha.bezier[3]));
+  return mix(sphere.alpha.value[0], sphere.alpha.value[1], mapBezier(factor, sphere.alpha.bezier[0], sphere.alpha.bezier[1], sphere.alpha.bezier[2], sphere.alpha.bezier[3]));
 }
 float getGelPointSize(float factor) {
-  return mix(objects.obj1.pointSize.value[0], objects.obj1.pointSize.value[1], mapBezier(factor, objects.obj1.pointSize.bezier[0], objects.obj1.pointSize.bezier[1], objects.obj1.pointSize.bezier[2], objects.obj1.pointSize.bezier[3]));
+  return mix(sphere.pointSize.value[0], sphere.pointSize.value[1], mapBezier(factor, sphere.pointSize.bezier[0], sphere.pointSize.bezier[1], sphere.pointSize.bezier[2], sphere.pointSize.bezier[3]));
 }
 
 vec3 applyTaper(vec3 pos, float taperAxisMin, float taperAxisMax) {
@@ -128,13 +124,13 @@ void main() {
   float logosTransitionAmount = 0.0;
   logosTransitionAmount = 0.0;
 
-  mat3 obj1Scaling = mat3(1.0);
-  obj1Scaling[0][0] = obj1Scale;
-  obj1Scaling[1][1] = obj1Scale;
-  obj1Scaling[2][2] = obj1Scale;
+  mat3 sphereScaling = mat3(1.0);
+  sphereScaling[0][0] = sphere.scale;
+  sphereScaling[1][1] = sphere.scale;
+  sphereScaling[2][2] = sphere.scale;
 
-  vec3 logosPosMin = obj1PosMin * obj1Scaling;
-  vec3 logosPosMax = obj1PosMax * obj1Scaling;
+  vec3 logosPosMin = sphere.posMin * sphereScaling;
+  vec3 logosPosMax = sphere.posMax * sphereScaling;
 
   float amount = 0.;
 
@@ -144,7 +140,7 @@ void main() {
   vec3 posMin = logosPosMin;
   vec3 posMax = logosPosMax;
 
-  vec3 logosPosition = posObj1 * obj1Scaling;
+  vec3 logosPosition = sphere_position * sphere.scale;
 
   vec4 position = vec4(logosPosition, 1.);
 
@@ -179,7 +175,7 @@ void main() {
   
   gl_Position = position;
 
-  float logosPointSize = getGelPointSize(zDepth) - length(snoise3(posObj1 * 2.) * 2.2);
+  float logosPointSize = getGelPointSize(zDepth) - length(snoise3(sphere_position * 2.) * 2.2);
   float pointSize = logosPointSize < 0. ? 0. : logosPointSize;
   gl_PointSize = pointSize * 2.;
 

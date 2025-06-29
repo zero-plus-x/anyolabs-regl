@@ -25,7 +25,7 @@ const updateMousePosition = (event) => {
 canvas.addEventListener('mousemove', updateMousePosition)
 
 const COUNT = 100000
-const obj1 = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
+const sphere = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
 
 const generateFibonacciSphere = (count, jitterAmount = 0.05) => {
   const positions = new Float32Array(count * 3)
@@ -55,7 +55,7 @@ const generateFibonacciSphere = (count, jitterAmount = 0.05) => {
   return positions
 }
 
-const sphere = generateFibonacciSphere(obj1.COUNT, 1)
+// sphere_position = generateFibonacciSphere(sphere.COUNT, 1)
 
 // Import noise function from utils if not already available
 const noise3D = (x, y, z) => {
@@ -172,7 +172,7 @@ const distortSphere = (basePositions, options = {}) => {
 }
 
 // Create first distorted sphere
-const distortedSphere = distortSphere(sphere, {
+const distortedSphere = distortSphere(sphere.POS, {
   scale: 5.5,
   noiseStrength: 0.25,
   offsetX: 5.0,
@@ -211,12 +211,14 @@ const calculateMinMax = (positions) => {
     max: [maxX, maxY, maxZ],
   }
 }
-
+console.log(generateFibonacciSphere(sphere.COUNT, 1.))
 // Set positions and calculate bounds
-obj1.POS = distortedSphere
-const obj1Bounds = calculateMinMax(distortedSphere)
-obj1.POS_MIN = obj1Bounds.min
-obj1.POS_MAX = obj1Bounds.max
+sphere.POS = generateFibonacciSphere(sphere.COUNT, 1.)
+const sphere1Bounds = calculateMinMax(sphere.POS)
+sphere.POS_MIN = sphere1Bounds.min
+sphere.POS_MAX = sphere1Bounds.max
+
+console.log(sphere)
 
 const regl = createREGL({
   canvas,
@@ -229,8 +231,7 @@ const regl = createREGL({
     const setupCamera = createSetupCamera({
       regl,
     })
-
-    const drawParticles = createDrawParticlesCommand(regl, { obj1 })
+    const drawParticles = createDrawParticlesCommand(regl, { sphere })
 
     resizeRegl(canvas, regl, [])
 
