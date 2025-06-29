@@ -211,9 +211,9 @@ const calculateMinMax = (positions) => {
     max: [maxX, maxY, maxZ],
   }
 }
-console.log(generateFibonacciSphere(sphere.COUNT, 1.))
+console.log(generateFibonacciSphere(sphere.COUNT, 0.))
 // Set positions and calculate bounds
-sphere.POS = generateFibonacciSphere(sphere.COUNT, 1.)
+sphere.POS = generateFibonacciSphere(sphere.COUNT, 0.)
 const sphere1Bounds = calculateMinMax(sphere.POS)
 sphere.POS_MIN = sphere1Bounds.min
 sphere.POS_MAX = sphere1Bounds.max
