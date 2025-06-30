@@ -220,27 +220,27 @@ export const proximityGenerator = (firstArray, secondArray, useFurthest = false,
   return result
 }
 
-// Shuffle the order of points in a 3D position array
-export const shufflePositions = (positions, seededRandom = Math.random) => {
-  const count = positions.length / 3
-  const shuffled = new Float32Array(positions.length)
+// Shuffle the order of components in an array
+export const shuffleComponents = (array, componentsPerElement, seededRandom = Math.random) => {
+  const count = array.length / componentsPerElement
+  const shuffled = new Float32Array(array.length)
   
-  // Copy original positions
-  for (let i = 0; i < positions.length; i++) {
-    shuffled[i] = positions[i]
+  // Copy original array
+  for (let i = 0; i < array.length; i++) {
+    shuffled[i] = array[i]
   }
   
-  // Fisher-Yates shuffle algorithm for 3D points
+  // Fisher-Yates shuffle algorithm for components
   for (let i = count - 1; i > 0; i--) {
     // Pick a random index from 0 to i
     const j = Math.floor(seededRandom() * (i + 1))
     
-    // Swap points at indices i and j
-    const baseI = i * 3
-    const baseJ = j * 3
+    // Swap components at indices i and j
+    const baseI = i * componentsPerElement
+    const baseJ = j * componentsPerElement
     
-    // Swap x, y, z components
-    for (let k = 0; k < 3; k++) {
+    // Swap all components for this element
+    for (let k = 0; k < componentsPerElement; k++) {
       const temp = shuffled[baseI + k]
       shuffled[baseI + k] = shuffled[baseJ + k]
       shuffled[baseJ + k] = temp
@@ -248,6 +248,11 @@ export const shufflePositions = (positions, seededRandom = Math.random) => {
   }
   
   return shuffled
+}
+
+// Shuffle the order of points in a 3D position array (legacy function)
+export const shufflePositions = (positions, seededRandom = Math.random) => {
+  return shuffleComponents(positions, 3, seededRandom)
 }
 
 // ... existing code ...

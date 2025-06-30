@@ -2,7 +2,7 @@ import createREGL from 'regl'
 import { resizeRegl, noise3D } from './utils'
 import { createDrawParticlesCommand } from './commands/particles'
 import { createSetupCamera } from './commands/camera'
-import { generateVolumeSphere, generateCubeSurface, proximityGenerator, shufflePositions } from './generators'
+import { generateVolumeSphere, generateCubeSurface, proximityGenerator, shufflePositions, shuffleComponents } from './generators'
 
 const canvas = document.getElementById('heroImage')
 
