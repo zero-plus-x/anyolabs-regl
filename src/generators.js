@@ -343,21 +343,28 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
     const positions = new Float32Array(count * 3)
     
     for (let i = 0; i < count; i++) {
-      // Create custom density gradient
-      // Higher densityPower = more concentration toward center
-      // densityPower = 1.0 gives linear falloff
-      // densityPower = 2.0 gives quadratic falloff (nice default)
-      // densityPower = 3.0 gives strong center concentration
+      // Start with uniform volume distribution (cube root for even spacing)
+      const uniformRadius = Math.pow(Math.random(), 1.0 / 3.0)
       
-      let radius
+      // Apply exponential distance adjustment function
+      // This creates a curve that modifies the distance from center
+      let adjustedRadius
+      
       if (densityPower === 1.0) {
-        // Linear density falloff
-        radius = 1.0 - Math.random()
+        // Linear adjustment (no change)
+        adjustedRadius = uniformRadius
+      } else if (densityPower < 1.0) {
+        // Exponential expansion (pushes points outward)
+        // f(x) = x^(1/densityPower) where densityPower < 1
+        adjustedRadius = Math.pow(uniformRadius, 1.0 / densityPower)
       } else {
-        // Power-law density falloff
-        const u = Math.random()
-        radius = Math.pow(1.0 - Math.pow(u, 1.0 / densityPower), 1.0 / 3.0)
+        // Exponential compression (pulls points inward)
+        // f(x) = x^densityPower where densityPower > 1
+        adjustedRadius = Math.pow(uniformRadius, densityPower)
       }
+      
+      // Clamp to ensure we stay within unit sphere
+      adjustedRadius = Math.min(adjustedRadius, 1.0)
       
       // Generate uniform angular distribution
       const theta = Math.acos(2 * Math.random() - 1)
@@ -365,14 +372,14 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
       
       // Convert to Cartesian coordinates
       const sinTheta = Math.sin(theta)
-      const x = radius * sinTheta * Math.cos(phi)
-      const y = radius * Math.cos(theta)
-      const z = radius * sinTheta * Math.sin(phi)
+      const x = adjustedRadius * sinTheta * Math.cos(phi)
+      const y = adjustedRadius * Math.cos(theta)
+      const z = adjustedRadius * sinTheta * Math.sin(phi)
       
       // Apply jitter
       const jitter = jitterAmount
       const offset = (Math.random() - 0.5) * jitter
-      positions[i * 3] = x +  offset
+      positions[i * 3] = x + offset
       positions[i * 3 + 1] = y + offset
       positions[i * 3 + 2] = z + offset
     }
