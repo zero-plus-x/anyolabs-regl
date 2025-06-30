@@ -252,3 +252,118 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
     
     return positions
   }
+
+  // ... existing code ...
+
+export const generateCubeSurface = (count, jitterAmount = 0.05) => {
+  const positions = new Float32Array(count * 3)
+  
+  // Define the 6 faces of a unit cube in snake order
+  // Top: 0, Right: 1, Front: 2, Left: 3, Back: 4, Bottom: 5
+  const faces = [
+    // Top face (y = 0.5)
+    { normal: [0, 1, 0], u: [1, 0, 0], v: [0, 0, -1], offset: [0, 0.5, 0] },
+    // Right face (x = 0.5)
+    { normal: [1, 0, 0], u: [0, 0, -1], v: [0, 1, 0], offset: [0.5, 0, 0] },
+    // Front face (z = 0.5)
+    { normal: [0, 0, 1], u: [1, 0, 0], v: [0, 1, 0], offset: [0, 0, 0.5] },
+    // Left face (x = -0.5)
+    { normal: [-1, 0, 0], u: [0, 0, 1], v: [0, 1, 0], offset: [-0.5, 0, 0] },
+    // Back face (z = -0.5)
+    { normal: [0, 0, -1], u: [-1, 0, 0], v: [0, 1, 0], offset: [0, 0, -0.5] },
+    // Bottom face (y = -0.5)
+    { normal: [0, -1, 0], u: [1, 0, 0], v: [0, 0, 1], offset: [0, -0.5, 0] }
+  ]
+  
+  // Calculate optimal snake path dimensions
+  const totalArea = 6 // 6 faces of unit area each
+  const density = count / totalArea
+  const baseResolution = Math.ceil(Math.sqrt(density))
+  
+  // When placing points at corners, we need (resolution+1)^2 positions to cover full surface including edges
+  const pointsPerFace = (baseResolution + 1) * (baseResolution + 1)
+  const totalRibbonLength = pointsPerFace * 6
+  
+  // Function to convert snake path coordinates to UV coordinates
+  // Place points at corners to cover full surface including edges
+  const snakeToUV = (snakeIndex, resolution) => {
+    const gridSize = resolution + 1  // We have (resolution+1) points in each dimension
+    const row = Math.floor(snakeIndex / gridSize)
+    const col = snakeIndex % gridSize
+    
+    // Snake pattern: alternate direction each row
+    const actualCol = (row % 2 === 0) ? col : (gridSize - 1 - col)
+    
+    // Map to UV coordinates from -0.5 to +0.5 (covering full surface including edges)
+    const u = (actualCol / resolution) - 0.5
+    const v = (row / resolution) - 0.5
+    
+    return { u, v }
+  }
+  
+  // Distribute points evenly along the ribbon
+  for (let i = 0; i < count; i++) {
+    // Calculate position along the continuous ribbon (0 to 1)
+    const ribbonPosition = i / count
+    
+    // Convert ribbon position to face and local position
+    const scaledPosition = ribbonPosition * totalRibbonLength
+    const faceIndex = Math.floor(scaledPosition / pointsPerFace)
+    const localSnakeIndex = Math.floor(scaledPosition % pointsPerFace)
+    
+    // Ensure we don't go out of bounds
+    const clampedFaceIndex = Math.min(faceIndex, 5)
+    const face = faces[clampedFaceIndex]
+    
+    // Convert snake index to UV coordinates (at corners to cover full surface)
+    let { u, v } = snakeToUV(localSnakeIndex, baseResolution)
+    
+    // Apply smart jitter based on point location
+    if (jitterAmount > 0) {
+      // Check if point is on an edge (with small tolerance)
+      const tolerance = 0.001
+      const isOnLeftEdge = Math.abs(u + 0.5) < tolerance
+      const isOnRightEdge = Math.abs(u - 0.5) < tolerance
+      const isOnBottomEdge = Math.abs(v + 0.5) < tolerance
+      const isOnTopEdge = Math.abs(v - 0.5) < tolerance
+      const isOnCorner = (isOnLeftEdge || isOnRightEdge) && (isOnBottomEdge || isOnTopEdge)
+      
+      if (isOnCorner) {
+        // Corner points don't jitter at all
+      } else if (isOnTopEdge || isOnBottomEdge) {
+        // Horizontal edge points can only jitter along u direction
+        const maxJitter = Math.min(0.5 + u, 0.5 - u)
+        const jitterU = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitter * 2, 0.8)
+        u = Math.max(-0.5, Math.min(0.5, u + jitterU))
+      } else if (isOnLeftEdge || isOnRightEdge) {
+        // Vertical edge points can only jitter along v direction
+        const maxJitter = Math.min(0.5 + v, 0.5 - v)
+        const jitterV = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitter * 2, 0.8)
+        v = Math.max(-0.5, Math.min(0.5, v + jitterV))
+      } else {
+        // Interior points get full 2D jitter with boundary constraints
+        const maxJitterU = Math.min(0.5 + u, 0.5 - u)
+        const maxJitterV = Math.min(0.5 + v, 0.5 - v)
+        
+        const jitterU = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitterU * 2, 1.0)
+        const jitterV = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitterV * 2, 1.0)
+        
+        u = Math.max(-0.5, Math.min(0.5, u + jitterU))
+        v = Math.max(-0.5, Math.min(0.5, v + jitterV))
+      }
+    }
+    
+    // Convert UV coordinates to 3D position on the face
+    const x = face.offset[0] + u * face.u[0] + v * face.v[0]
+    const y = face.offset[1] + u * face.u[1] + v * face.v[1]
+    const z = face.offset[2] + u * face.u[2] + v * face.v[2]
+    
+    positions[i * 3] = x
+    positions[i * 3 + 1] = y
+    positions[i * 3 + 2] = z
+  }
+  
+  return positions
+}
+
+// ... existing code ...

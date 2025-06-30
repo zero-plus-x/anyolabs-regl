@@ -189,5 +189,5 @@ void main() {
   vec3 logosColor = getGelColor(zDepth);
   vec3 pointColor = clamp(sphere_color, 0.75, 1.);
 
-  vColor = vec4(sphere_color, 1.);
+  vColor = vec4(vec3(1.), 1.);
 }

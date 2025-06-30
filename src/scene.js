@@ -2,7 +2,7 @@ import createREGL from 'regl'
 import { resizeRegl, noise3D } from './utils'
 import { createDrawParticlesCommand } from './commands/particles'
 import { createSetupCamera } from './commands/camera'
-import { generateCenterWeightedVolumeSphere, generateLayeredVolumeSphere, generateGradientVolumeSphere } from './generators'
+import { generateCenterWeightedVolumeSphere, generateLayeredVolumeSphere, generateGradientVolumeSphere, generateCubeSurface } from './generators'
 
 const canvas = document.getElementById('heroImage')
 
@@ -25,7 +25,7 @@ const updateMousePosition = (event) => {
 
 canvas.addEventListener('mousemove', updateMousePosition)
 
-const COUNT = 2200
+const COUNT = 1200
 const sphere = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), COL: new Float32Array(Array.from({length: COUNT}).map(() => Math.max(Math.random() * 0.7, 0.5)).flatMap(v => [v,v,v])), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
 
 // Calculate min/max values more efficiently
@@ -57,7 +57,9 @@ const calculateMinMax = (positions) => {
   }
 }
 // Set positions and calculate bounds
-sphere.POS = generateGradientVolumeSphere(sphere.COUNT, 0.1, .2) // 0.2 = strong center bias
+// sphere.POS = generateGradientVolumeSphere(sphere.COUNT, 0.1, .2) // 0.2 = strong center bias
+sphere.POS = generateCubeSurface(sphere.COUNT, 0) // 0.2 = strong center bias
+
 const sphere1Bounds = calculateMinMax(sphere.POS)
 sphere.POS_MIN = sphere1Bounds.min
 sphere.POS_MAX = sphere1Bounds.max
