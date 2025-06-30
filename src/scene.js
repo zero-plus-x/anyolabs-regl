@@ -27,6 +27,7 @@ canvas.addEventListener('mousemove', updateMousePosition)
 
 const COUNT = 2200
 const sphere = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), COL: new Float32Array(Array.from({length: COUNT}).map(() => Math.max(Math.random() * 0.7, 0.5)).flatMap(v => [v,v,v])), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
+const cube = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), COL: new Float32Array(Array.from({length: COUNT}).map(() => Math.max(Math.random() * 0.7, 0.5)).flatMap(v => [v,v,v])), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
 
 // Calculate min/max values more efficiently
 const calculateMinMax = (positions) => {
@@ -56,14 +57,21 @@ const calculateMinMax = (positions) => {
     max: [maxX, maxY, maxZ],
   }
 }
-// Set positions and calculate bounds
+// Set positions and calculate bounds for sphere
 sphere.POS = generateCubeSurface(sphere.COUNT, 0.09) 
 
 const sphere1Bounds = calculateMinMax(sphere.POS)
 sphere.POS_MIN = sphere1Bounds.min
 sphere.POS_MAX = sphere1Bounds.max
 
-console.log(sphere)
+// Set positions and calculate bounds for cube
+cube.POS = generateCenterWeightedVolumeSphere(cube.COUNT, 0.05, 0.2)
+
+const cubeBounds = calculateMinMax(cube.POS)
+cube.POS_MIN = cubeBounds.min
+cube.POS_MAX = cubeBounds.max
+
+console.log(sphere, cube)
 
 const regl = createREGL({
   canvas,
@@ -76,7 +84,7 @@ const regl = createREGL({
     const setupCamera = createSetupCamera({
       regl,
     })
-    const drawParticles = createDrawParticlesCommand(regl, { sphere })
+    const drawParticles = createDrawParticlesCommand(regl, { sphere, cube })
 
     resizeRegl(canvas, regl, [])
 
@@ -104,6 +112,7 @@ const regl = createREGL({
             color0: [0, 94, 255].map(x => x / 255),
             color1: [141, 0, 203].map(x => x / 255),
             uTaperFactor: currentTaperFactor,
+            morphAmount: Math.sin(time * 0.5) * 0.5 + 0.5, // Animate morph between 0 and 1
           })
         },
       )

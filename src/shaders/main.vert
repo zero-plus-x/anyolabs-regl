@@ -10,6 +10,7 @@ uniform float uAlpha;
 uniform float uAmount;
 
 uniform float uTaperFactor;
+uniform float morphAmount;
 
 uniform float pointSizeMin;
 uniform float pointSizeMax;
@@ -35,8 +36,8 @@ struct ColorWithCurve {
 
 attribute vec3 sphere_position;
 attribute vec3 sphere_color;
-// attribute vec3 cube_position;
-// uniform ObjectData cube_data;
+attribute vec3 cube_position;
+attribute vec3 cube_color;
 
 struct ObjectData {
   ValueWithCurve alpha;
@@ -47,6 +48,7 @@ struct ObjectData {
   float scale;
 };
 uniform ObjectData sphere;
+uniform ObjectData cube;
 
 float fbmScaleScalar = 2.0;
 #define FBM_SCALE_SCALAR fbmScaleScalar
@@ -124,25 +126,39 @@ void main() {
   float logosTransitionAmount = 0.0;
   logosTransitionAmount = 0.0;
 
+  // Sphere scaling
   mat3 sphereScaling = mat3(1.0);
   sphereScaling[0][0] = sphere.scale;
   sphereScaling[1][1] = sphere.scale;
   sphereScaling[2][2] = sphere.scale;
 
-  vec3 logosPosMin = sphere.posMin * sphereScaling;
-  vec3 logosPosMax = sphere.posMax * sphereScaling;
+  // Cube scaling
+  mat3 cubeScaling = mat3(1.0);
+  cubeScaling[0][0] = cube.scale;
+  cubeScaling[1][1] = cube.scale;
+  cubeScaling[2][2] = cube.scale;
+
+  // Calculate bounds for both objects
+  vec3 spherePosMin = sphere.posMin * sphereScaling;
+  vec3 spherePosMax = sphere.posMax * sphereScaling;
+  vec3 cubePosMin = cube.posMin * cubeScaling;
+  vec3 cubePosMax = cube.posMax * cubeScaling;
+
+  // Morph positions between sphere and cube
+  vec3 spherePosition = sphere_position * sphere.scale;
+  vec3 cubePosition = cube_position * cube.scale;
+  vec3 morphedPosition = mix(spherePosition, cubePosition, morphAmount);
+
+  // Morph bounds
+  vec3 posMin = mix(spherePosMin, cubePosMin, morphAmount);
+  vec3 posMax = mix(spherePosMax, cubePosMax, morphAmount);
 
   float amount = 0.;
 
   float transitionFactor = 0.;
   float transitionAmount = 0.;
 
-  vec3 posMin = logosPosMin;
-  vec3 posMax = logosPosMax;
-
-  vec3 logosPosition = sphere_position * sphere.scale;
-
-  vec4 position = vec4(logosPosition, 1.);
+  vec4 position = vec4(morphedPosition, 1.);
 
   float inversedZDepth = (position.z - posMin.z) / (posMax.z - posMin.z);
   float zDepth = 1. - inversedZDepth;
@@ -175,9 +191,12 @@ void main() {
   
   gl_Position = position;
 
-  float logosPointSize = length(snoise3(sphere_position * 10.)) * 2.2;
-  float pointSize = clamp(logosPointSize, 1.6, 1.8);
-  gl_PointSize = pointSize ;
+  // Morph point size based on both objects
+  float spherePointSize = length(snoise3(sphere_position * 10.)) * 2.2;
+  float cubePointSize = length(snoise3(cube_position * 10.)) * 2.2;
+  float morphedPointSize = mix(spherePointSize, cubePointSize, morphAmount);
+  float pointSize = clamp(morphedPointSize, 1.6, 1.8);
+  gl_PointSize = pointSize;
 
   float alpha1 = (brownian1 - 0.4) + inversedZDepth;
 
@@ -187,7 +206,11 @@ void main() {
   // pointAlpha = alpha2 * uAlpha;
 
   vec3 logosColor = getGelColor(zDepth);
-  vec3 pointColor = clamp(sphere_color, 0.75, 1.);
+  
+  // Morph colors between sphere and cube
+  vec3 sphereColor = clamp(sphere_color, 0.75, 1.);
+  vec3 cubeColor = clamp(cube_color, 0.75, 1.);
+  vec3 morphedColor = mix(sphereColor, cubeColor, morphAmount);
 
   vColor = vec4(vec3(1.), 1.);
 }

@@ -10,6 +10,8 @@ export const createDrawParticlesCommand = (regl, data) => {
     attributes: {
       sphere_position: data.sphere.POS,
       sphere_color: data.sphere.COL,
+      cube_position: data.cube.POS,
+      cube_color: data.cube.COL,
     },
     uniforms: {
       modelMatrix: (_, { position }) => mat4.translate([], mat4.identity([]), position),
@@ -18,6 +20,7 @@ export const createDrawParticlesCommand = (regl, data) => {
       uAlpha: regl.prop('uAlpha'),
       uAmount: regl.prop('uAmount'),
       uTaperFactor: regl.prop('uTaperFactor'),
+      morphAmount: regl.prop('morphAmount'),
 
       'sphere.alpha.value': [1, 0],
       'sphere.alpha.bezier': [0, 0, 1, 1],
@@ -31,6 +34,19 @@ export const createDrawParticlesCommand = (regl, data) => {
       'sphere.posMin': data.sphere.POS_MIN,
       'sphere.posMax': data.sphere.POS_MAX,
       'sphere.scale': 0.8,
+
+      'cube.alpha.value': [1, 0],
+      'cube.alpha.bezier': [0, 0, 1, 1],
+
+      'cube.pointSize.value': [2, 0.6],
+      'cube.pointSize.bezier': [0, 0, 0.15, 0.25],
+
+      'cube.color.value[0]': [0.74,0.74,0.74],
+      'cube.color.value[1]': [0.74,0.74,0.74],
+      'cube.color.bezier': [0., 0., 1, 1],
+      'cube.posMin': data.cube.POS_MIN,
+      'cube.posMax': data.cube.POS_MAX,
+      'cube.scale': 0.8,
 
       transitionBezier: [0.0, 0, 1, 1],
 
