@@ -34,10 +34,10 @@ struct ColorWithCurve {
 };
 
 attribute vec3 sphere_position;
-attribute vec3 sphere_color;
+attribute vec4 sphere_color;
 attribute float sphere_size;
 attribute vec3 cube_position;
-attribute vec3 cube_color;
+attribute vec4 cube_color;
 attribute float cube_size;
 
 struct ObjectData {
@@ -207,9 +207,9 @@ void main() {
   // pointAlpha = alpha2 * uAlpha;
   
   // Morph colors between sphere and cube
-  vec3 sphereColor = clamp(sphere_color, 0., 1.);
-  vec3 cubeColor = clamp(cube_color, 0., 1.);
-  vec3 morphedColor = mix(sphereColor, cubeColor, morphAmount);
+  vec4 sphereColor = clamp(sphere_color, 0., 1.);
+  vec4 cubeColor = clamp(cube_color, 0., 1.);
+  vec4 morphedColor = mix(sphereColor, cubeColor, morphAmount);
 
-  vColor = vec4(morphedColor, pointAlpha);
+  vColor = vec4(morphedColor.rgb, morphedColor.a * pointAlpha);
 }

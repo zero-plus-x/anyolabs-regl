@@ -9,10 +9,10 @@ export const createDrawParticlesCommand = (regl, data) => {
     frag,
     attributes: {
       sphere_position: data.sphere.POS,
-      sphere_color: data.sphere.COL,
+      sphere_color: { buffer: data.sphere.COL, size: 4 },
       sphere_size: data.sphere.SIZE,
       cube_position: data.cube.POS,
-      cube_color: data.cube.COL,
+      cube_color: { buffer: data.cube.COL, size: 4 },
       cube_size: data.cube.SIZE,
     },
     uniforms: {

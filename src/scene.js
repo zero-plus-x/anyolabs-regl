@@ -26,8 +26,8 @@ const updateMousePosition = (event) => {
 canvas.addEventListener('mousemove', updateMousePosition)
 
 const COUNT = 2200
-const sphere = { COUNT: COUNT, SIZE: new Float32Array(COUNT).fill(2.), POS: new Float32Array(COUNT * 3), COL: new Float32Array(Array.from({length: COUNT}).map(() => Math.max(Math.random() * 0.7, 0.5)).flatMap(v => [v,v,v])), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
-const cube = { COUNT: COUNT, SIZE: new Float32Array(COUNT).fill(2.), POS: new Float32Array(COUNT * 3), COL: new Float32Array(Array.from({length: COUNT}).map(() => Math.max(Math.random() * 0.7, 0.5)).flatMap(v => [v,v,v])), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
+const sphere = { COUNT: COUNT, SIZE: new Float32Array(COUNT).fill(2.), POS: new Float32Array(COUNT * 3), COL: new Float32Array(COUNT * 4), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
+const cube = { COUNT: COUNT, SIZE: new Float32Array(COUNT).fill(2.), POS: new Float32Array(COUNT * 3), COL: new Float32Array(COUNT * 4), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
 
 // Calculate min/max values more efficiently
 const calculateMinMax = (positions) => {
@@ -58,14 +58,18 @@ const calculateMinMax = (positions) => {
   }
 }
 // Set positions and calculate bounds for cube
-cube.POS = generateCubeSurface(cube.COUNT, 0.08, true) // Allow edge points to move inside faces
+const cubeData = generateCubeSurface(cube.COUNT, 0.08, true)
+cube.POS = cubeData.positions
+cube.COL = cubeData.colors
 
 const cubeBounds = calculateMinMax(cube.POS)
 cube.POS_MIN = cubeBounds.min
 cube.POS_MAX = cubeBounds.max
+
 // Set positions and calculate bounds for sphere
-const spherePoints = generateVolumeSphere(cube.COUNT, 0.1)
-sphere.POS = proximityGenerator(cube.POS, spherePoints, false, 100)
+const sphereData = generateVolumeSphere(cube.COUNT, 0.1)
+sphere.POS = proximityGenerator(cube.POS, sphereData.positions, false, 100)
+sphere.COL = proximityGenerator(cube.COL, sphereData.colors, false, 100)
 
 const sphere1Bounds = calculateMinMax(sphere.POS)
 sphere.POS_MIN = sphere1Bounds.min

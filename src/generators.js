@@ -286,6 +286,7 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
   // Alternative with more sophisticated density control
   export const generateVolumeSphere = (count, jitterAmount = 0.05) => {
     const positions = new Float32Array(count * 3)
+    const colors = new Float32Array(count * 4) // RGBA
     
     // Calculate 3D grid dimensions to fit count points
     // We'll generate more points than needed and filter to get exactly count points
@@ -352,8 +353,15 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
               }
             }
             
-            // Store the valid point
-            validPoints.push([finalX, finalY, finalZ])
+            // Generate RGBA color based on position
+            const distance = Math.sqrt(finalX * finalX + finalY * finalY + finalZ * finalZ)
+            const hue = (distance * 360 + Math.atan2(finalZ, finalX) * 180 / Math.PI) % 360
+            const saturation = 0.6 + distance * 0.4
+            const value = 0.7 + Math.random() * 0.3
+            const alpha = 0.8 + Math.random() * 0.2
+            
+            // Store the valid point with color
+            validPoints.push([finalX, finalY, finalZ, hue, saturation, value, alpha])
           }
         }
       }
@@ -396,18 +404,48 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
         }
       }
       
-      validPoints.push([x, y, z])
+      // Generate RGBA color for random points
+      const distance = Math.sqrt(x * x + y * y + z * z)
+      const hue = (distance * 360 + Math.atan2(z, x) * 180 / Math.PI) % 360
+      const saturation = 0.6 + distance * 0.4
+      const value = 0.7 + Math.random() * 0.3
+      const alpha = 0.8 + Math.random() * 0.2
+      
+      validPoints.push([x, y, z, hue, saturation, value, alpha])
     }
     
-    // Take exactly count points and fill the positions array
+    // Take exactly count points and fill the positions and colors arrays
     for (let i = 0; i < count; i++) {
       const point = validPoints[i % validPoints.length]
       positions[i * 3] = point[0]
       positions[i * 3 + 1] = point[1]
       positions[i * 3 + 2] = point[2]
+      
+      // Convert HSV to RGB
+      const h = point[3] / 360
+      const s = point[4]
+      const v = point[5]
+      const a = point[6]
+      
+      const c = v * s
+      const x = c * (1 - Math.abs(((h * 6) % 2) - 1))
+      const m = v - c
+      
+      let r, g, b
+      if (h < 1/6) { r = c; g = x; b = 0 }
+      else if (h < 2/6) { r = x; g = c; b = 0 }
+      else if (h < 3/6) { r = 0; g = c; b = x }
+      else if (h < 4/6) { r = 0; g = x; b = c }
+      else if (h < 5/6) { r = x; g = 0; b = c }
+      else { r = c; g = 0; b = x }
+      
+      colors[i * 4] = r + m
+      colors[i * 4 + 1] = g + m
+      colors[i * 4 + 2] = b + m
+      colors[i * 4 + 3] = a
     }
     
-    return positions
+    return { positions, colors }
   }
   
   // Hybrid approach: uniform base + center-weighted overlay
@@ -463,8 +501,9 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
 
   // ... existing code ...
 
-export const generateCubeSurface = (count, jitterAmount = 0.05) => {
+export const generateCubeSurface = (count, jitterAmount = 0.05, edgeStickiness = true) => {
   const positions = new Float32Array(count * 3)
+  const colors = new Float32Array(count * 4) // RGBA
   
   // Define the 6 faces of a unit cube in snake order
   // Top: 0, Right: 1, Front: 2, Left: 3, Back: 4, Bottom: 5
@@ -569,9 +608,41 @@ export const generateCubeSurface = (count, jitterAmount = 0.05) => {
     positions[i * 3] = x
     positions[i * 3 + 1] = y
     positions[i * 3 + 2] = z
+    
+    // Generate RGBA color based on face and position
+    const distance = Math.sqrt(x * x + y * y + z * z)
+    const faceHue = clampedFaceIndex * 60 // Different hue per face
+    const positionHue = (Math.atan2(v, u) * 180 / Math.PI + 180) % 360
+    const hue = (faceHue + positionHue * 0.3) % 360
+    const saturation = 0.5 + distance * 0.3
+    const value = 0.6 + Math.random() * 0.4
+    const alpha = 0.7 + Math.random() * 0.3
+    
+    // Convert HSV to RGB
+    const h = hue / 360
+    const s = saturation
+    const val = value
+    const a = alpha
+    
+    const c = val * s
+    const xComp = c * (1 - Math.abs(((h * 6) % 2) - 1))
+    const m = val - c
+    
+    let r, g, b
+    if (h < 1/6) { r = c; g = xComp; b = 0 }
+    else if (h < 2/6) { r = xComp; g = c; b = 0 }
+    else if (h < 3/6) { r = 0; g = c; b = xComp }
+    else if (h < 4/6) { r = 0; g = xComp; b = c }
+    else if (h < 5/6) { r = xComp; g = 0; b = c }
+    else { r = c; g = 0; b = xComp }
+    
+    colors[i * 4] = r + m
+    colors[i * 4 + 1] = g + m
+    colors[i * 4 + 2] = b + m
+    colors[i * 4 + 3] = a
   }
   
-  return positions
+  return { positions, colors }
 }
 
 // ... existing code ...
