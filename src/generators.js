@@ -211,6 +211,64 @@ export const generateSphereFromPoints = (existingPositions, radius = 1.0, jitter
   return positions
 }
 
+// Match points from first array to closest points in second array (no reuse)
+export const proximityGenerator = (firstArray, secondArray) => {
+  if (firstArray.length !== secondArray.length) {
+    throw new Error('Arrays must have the same length')
+  }
+  
+  const count = firstArray.length / 3
+  const result = new Float32Array(firstArray.length)
+  
+  // Create array of available indices from second array
+  const availableIndices = Array.from({ length: count }, (_, i) => i)
+  
+  // For each point in first array, find closest available point in second array
+  for (let i = 0; i < count; i++) {
+    const firstPoint = [
+      firstArray[i * 3],
+      firstArray[i * 3 + 1], 
+      firstArray[i * 3 + 2]
+    ]
+    
+    let closestIndex = -1
+    let closestDistance = Infinity
+    let closestAvailableIndex = -1
+    
+    // Check all available points in second array
+    for (let j = 0; j < availableIndices.length; j++) {
+      const secondIndex = availableIndices[j]
+      const secondPoint = [
+        secondArray[secondIndex * 3],
+        secondArray[secondIndex * 3 + 1],
+        secondArray[secondIndex * 3 + 2]
+      ]
+      
+      // Calculate squared distance (faster than sqrt)
+      const dx = firstPoint[0] - secondPoint[0]
+      const dy = firstPoint[1] - secondPoint[1]
+      const dz = firstPoint[2] - secondPoint[2]
+      const distanceSquared = dx * dx + dy * dy + dz * dz
+      
+      if (distanceSquared < closestDistance) {
+        closestDistance = distanceSquared
+        closestIndex = secondIndex
+        closestAvailableIndex = j
+      }
+    }
+    
+    // Copy the closest point to result
+    result[i * 3] = secondArray[closestIndex * 3]
+    result[i * 3 + 1] = secondArray[closestIndex * 3 + 1]
+    result[i * 3 + 2] = secondArray[closestIndex * 3 + 2]
+    
+    // Remove the used index from available indices
+    availableIndices.splice(closestAvailableIndex, 1)
+  }
+  
+  return result
+}
+
 // ... existing code ...
 
 export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, centerBias = 0.3) => {
