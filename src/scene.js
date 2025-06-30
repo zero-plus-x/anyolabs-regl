@@ -58,14 +58,14 @@ const calculateMinMax = (positions) => {
   }
 }
 // Set positions and calculate bounds for sphere
-sphere.POS = generateCubeSurface(sphere.COUNT, 0.09) 
+sphere.POS = generateCenterWeightedVolumeSphere(sphere.COUNT, 0.05, 0.2)
 
 const sphere1Bounds = calculateMinMax(sphere.POS)
 sphere.POS_MIN = sphere1Bounds.min
 sphere.POS_MAX = sphere1Bounds.max
 
 // Set positions and calculate bounds for cube
-cube.POS = generateCenterWeightedVolumeSphere(cube.COUNT, 0.05, 0.2)
+cube.POS = generateCubeSurface(cube.COUNT, 0.09)
 
 const cubeBounds = calculateMinMax(cube.POS)
 cube.POS_MIN = cubeBounds.min
