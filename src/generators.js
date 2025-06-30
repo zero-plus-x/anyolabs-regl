@@ -255,6 +255,60 @@ export const shufflePositions = (positions, seededRandom = Math.random) => {
   return shuffleComponents(positions, 3, seededRandom)
 }
 
+// Shuffle multiple arrays with the same component order
+export const shuffleMultipleArrays = (arrays, componentsPerElement, seededRandom = Math.random) => {
+  if (arrays.length === 0) return []
+  
+  // Calculate number of elements based on first array and components per element
+  const count = arrays[0].length / componentsPerElement
+  
+  // Verify all arrays have the same number of elements
+  for (let i = 1; i < arrays.length; i++) {
+    if (arrays[i].length !== arrays[0].length) {
+      throw new Error('All arrays must have the same length')
+    }
+  }
+  
+  // Create shuffled copies of all arrays
+  const shuffledArrays = arrays.map(array => new Float32Array(array.length))
+  
+  // Copy original arrays
+  for (let i = 0; i < arrays.length; i++) {
+    for (let j = 0; j < arrays[i].length; j++) {
+      shuffledArrays[i][j] = arrays[i][j]
+    }
+  }
+  
+  // Generate shuffle order once and apply to all arrays
+  const shuffleOrder = Array.from({ length: count }, (_, i) => i)
+  
+  // Fisher-Yates shuffle for the order
+  for (let i = count - 1; i > 0; i--) {
+    const j = Math.floor(seededRandom() * (i + 1))
+    const temp = shuffleOrder[i]
+    shuffleOrder[i] = shuffleOrder[j]
+    shuffleOrder[j] = temp
+  }
+  
+  // Apply the same shuffle order to all arrays
+  for (let arrayIndex = 0; arrayIndex < arrays.length; arrayIndex++) {
+    const originalArray = new Float32Array(arrays[arrayIndex])
+    
+    for (let i = 0; i < count; i++) {
+      const sourceIndex = shuffleOrder[i]
+      const targetIndex = i
+      
+      // Copy all components for this element
+      for (let k = 0; k < componentsPerElement; k++) {
+        shuffledArrays[arrayIndex][targetIndex * componentsPerElement + k] = 
+          originalArray[sourceIndex * componentsPerElement + k]
+      }
+    }
+  }
+  
+  return shuffledArrays
+}
+
 // ... existing code ...
 
 export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, centerBias = 0.3) => {
