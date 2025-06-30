@@ -9,6 +9,7 @@ export const createDrawParticlesCommand = (regl, data) => {
     frag,
     attributes: {
       sphere_position: data.sphere.POS,
+      sphere_color: data.sphere.COL,
     },
     uniforms: {
       modelMatrix: (_, { position }) => mat4.translate([], mat4.identity([]), position),
@@ -19,14 +20,14 @@ export const createDrawParticlesCommand = (regl, data) => {
       uTaperFactor: regl.prop('uTaperFactor'),
 
       'sphere.alpha.value': [1, 0],
-      'sphere.alpha.bezier': [0, 0, 0.5, 0.5],
+      'sphere.alpha.bezier': [0, 0, 1, 1],
 
-      'sphere.pointSize.value': [2, 0.01],
-      'sphere.pointSize.bezier': [0, 0, 0.5, 0.5],
+      'sphere.pointSize.value': [2, 0.6],
+      'sphere.pointSize.bezier': [0, 0, 0.15, 0.25],
 
-      'sphere.color.value[0]': regl.prop('color0'),
-      'sphere.color.value[1]': regl.prop('color1'),
-      'sphere.color.bezier': [0.2156, 0.964, 0.6969, 0.784],
+      'sphere.color.value[0]': [0.74,0.74,0.74],
+      'sphere.color.value[1]': [0.74,0.74,0.74],
+      'sphere.color.bezier': [0., 0., 1, 1],
       'sphere.posMin': data.sphere.POS_MIN,
       'sphere.posMax': data.sphere.POS_MAX,
       'sphere.scale': 0.8,

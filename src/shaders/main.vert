@@ -34,7 +34,7 @@ struct ColorWithCurve {
 };
 
 attribute vec3 sphere_position;
-
+attribute vec3 sphere_color;
 // attribute vec3 cube_position;
 // uniform ObjectData cube_data;
 
@@ -51,7 +51,7 @@ uniform ObjectData sphere;
 float fbmScaleScalar = 2.0;
 #define FBM_SCALE_SCALAR fbmScaleScalar
 
-#define FBM_AMPLITUD_INITIAL 1.
+#define FBM_AMPLITUD_INITIAL 10.
 #define FBM_AMPLITUD_SCALAR .5
 
 #include "./mapBezier.glsl"
@@ -94,13 +94,13 @@ float calcTransitionFactor(float blendAmount) {
 }
 
 vec3 getGelColor(float factor) {
-  return mix(sphere.color.value[0], sphere.color.value[1], mapBezier(factor, sphere.color.bezier[0], sphere.color.bezier[1], sphere.color.bezier[2], sphere.color.bezier[3]));
+  return mix(sphere.color.value[0], sphere.color.value[1],factor);
 }
 float getGelAlpha(float factor) {
-  return mix(sphere.alpha.value[0], sphere.alpha.value[1], mapBezier(factor, sphere.alpha.bezier[0], sphere.alpha.bezier[1], sphere.alpha.bezier[2], sphere.alpha.bezier[3]));
+  return mix(sphere.alpha.value[0], sphere.alpha.value[1], factor);
 }
 float getGelPointSize(float factor) {
-  return mix(sphere.pointSize.value[0], sphere.pointSize.value[1], mapBezier(factor, sphere.pointSize.bezier[0], sphere.pointSize.bezier[1], sphere.pointSize.bezier[2], sphere.pointSize.bezier[3]));
+  return mix(sphere.pointSize.value[0], sphere.pointSize.value[1], factor);
 }
 
 vec3 applyTaper(vec3 pos, float taperAxisMin, float taperAxisMax) {
@@ -154,40 +154,40 @@ void main() {
   p2.y += uCurrentTime * .2;
   p2 *= 1.;
 
-  vec4 snoiseNoiseConstant = vec4(snoise3(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1 * (1. - 0.);
-  vec4 curlNoiseConstant = vec4(curl(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1 * (1. - 0.);
-  vec4 finalNoiseConstant = snoiseNoiseConstant + curlNoiseConstant;
+  // vec4 snoiseNoiseConstant = vec4(snoise3(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1 * (1. - 0.);
+  // vec4 curlNoiseConstant = vec4(curl(p2) * 5.0, .0) / ((sin(uCurrentTime / 6.) + 1.) / 2. * 20. + 10.) * 0.1 * (1. - 0.);
+  // vec4 finalNoiseConstant = snoiseNoiseConstant + curlNoiseConstant;
 
 
-  float brownian1 = fbm(position.xyz + vec3(0., uCurrentTime / 8., 0.));
+  float brownian1 = fbm(position.xyz * 10. + vec3(0., uCurrentTime / 1., 0.));
 
   vec3 pos = position.xyz;
 
   vec4 finalPosition = position;
-  finalPosition += finalNoiseConstant;
+  // finalPosition += finalNoiseConstant;
   finalPosition.z += amount * (brownian1 * 0.15 - 0.15);
   mat4 modelViewMatrix = modelMatrix * viewMatrix;
 
   vec3 distortedPos = applyTaper(finalPosition.xyz, -3.0, 3.0);
-  finalPosition.xyz = distortedPos;
+  finalPosition.xyz = finalPosition.xyz;
 
   position = projectionMatrix * modelViewMatrix * finalPosition;
   
   gl_Position = position;
 
-  float logosPointSize = getGelPointSize(zDepth) - length(snoise3(sphere_position * 2.) * 2.2);
-  float pointSize = logosPointSize < 0. ? 0. : logosPointSize;
-  gl_PointSize = pointSize * 2.;
+  float logosPointSize = length(snoise3(sphere_position * 10.)) * 2.2;
+  float pointSize = clamp(logosPointSize, 1.6, 1.8);
+  gl_PointSize = pointSize ;
 
-  float alphaNoise1 = (brownian1 - 0.4) + inversedZDepth;
+  float alpha1 = (brownian1 - 0.4) + inversedZDepth;
 
-  float logosAlpha = getGelAlpha(zDepth);
-  logosAlpha += alphaNoise1 - 0.5;
-  float pointAlpha = clamp(logosAlpha * 3.0, 0., 1.);
-  pointAlpha = pointAlpha * uAlpha;
+  float alpha2 = brownian1;
+  // logosAlpha += alphaNoise1;
+  float pointAlpha = clamp(alpha2 * 10.0, .5, 1.);
+  // pointAlpha = alpha2 * uAlpha;
 
   vec3 logosColor = getGelColor(zDepth);
-  vec3 pointColor = logosColor;
+  vec3 pointColor = clamp(sphere_color, 0.75, 1.);
 
-  vColor = vec4(pointColor, pointAlpha);
+  vColor = vec4(sphere_color, 1.);
 }
