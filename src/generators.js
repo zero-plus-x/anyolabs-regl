@@ -269,6 +269,36 @@ export const proximityGenerator = (firstArray, secondArray) => {
   return result
 }
 
+// Shuffle the order of points in a 3D position array
+export const shufflePositions = (positions, seededRandom = Math.random) => {
+  const count = positions.length / 3
+  const shuffled = new Float32Array(positions.length)
+  
+  // Copy original positions
+  for (let i = 0; i < positions.length; i++) {
+    shuffled[i] = positions[i]
+  }
+  
+  // Fisher-Yates shuffle algorithm for 3D points
+  for (let i = count - 1; i > 0; i--) {
+    // Pick a random index from 0 to i
+    const j = Math.floor(seededRandom() * (i + 1))
+    
+    // Swap points at indices i and j
+    const baseI = i * 3
+    const baseJ = j * 3
+    
+    // Swap x, y, z components
+    for (let k = 0; k < 3; k++) {
+      const temp = shuffled[baseI + k]
+      shuffled[baseI + k] = shuffled[baseJ + k]
+      shuffled[baseJ + k] = temp
+    }
+  }
+  
+  return shuffled
+}
+
 // ... existing code ...
 
 export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, centerBias = 0.3) => {
