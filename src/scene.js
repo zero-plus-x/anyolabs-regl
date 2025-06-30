@@ -25,7 +25,7 @@ const updateMousePosition = (event) => {
 
 canvas.addEventListener('mousemove', updateMousePosition)
 
-const COUNT = 1200
+const COUNT = 2200
 const sphere = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), COL: new Float32Array(Array.from({length: COUNT}).map(() => Math.max(Math.random() * 0.7, 0.5)).flatMap(v => [v,v,v])), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
 
 // Calculate min/max values more efficiently
@@ -57,8 +57,7 @@ const calculateMinMax = (positions) => {
   }
 }
 // Set positions and calculate bounds
-// sphere.POS = generateGradientVolumeSphere(sphere.COUNT, 0.1, .2) // 0.2 = strong center bias
-sphere.POS = generateCubeSurface(sphere.COUNT, 0) // 0.2 = strong center bias
+sphere.POS = generateCubeSurface(sphere.COUNT, 0.09) 
 
 const sphere1Bounds = calculateMinMax(sphere.POS)
 sphere.POS_MIN = sphere1Bounds.min
