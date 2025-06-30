@@ -280,23 +280,23 @@ export const generateCubeSurface = (count, jitterAmount = 0.05) => {
   const density = count / totalArea
   const baseResolution = Math.ceil(Math.sqrt(density))
   
-  // When placing points at corners, we need (resolution+1)^2 positions to cover full surface including edges
-  const pointsPerFace = (baseResolution + 1) * (baseResolution + 1)
+  // Calculate total ribbon length (each face contributes resolution^2 points in snake pattern)
+  const pointsPerFace = baseResolution * baseResolution
   const totalRibbonLength = pointsPerFace * 6
   
   // Function to convert snake path coordinates to UV coordinates
   // Place points at corners to cover full surface including edges
   const snakeToUV = (snakeIndex, resolution) => {
-    const gridSize = resolution + 1  // We have (resolution+1) points in each dimension
-    const row = Math.floor(snakeIndex / gridSize)
-    const col = snakeIndex % gridSize
+    const row = Math.floor(snakeIndex / resolution)
+    const col = snakeIndex % resolution
     
     // Snake pattern: alternate direction each row
-    const actualCol = (row % 2 === 0) ? col : (gridSize - 1 - col)
+    const actualCol = (row % 2 === 0) ? col : (resolution - 1 - col)
     
-    // Map to UV coordinates from -0.5 to +0.5 (covering full surface including edges)
-    const u = (actualCol / resolution) - 0.5
-    const v = (row / resolution) - 0.5
+    // Map to UV coordinates to cover full surface from -0.5 to +0.5
+    // The key fix: ensure we reach the +0.5 boundary by using (resolution-1) as divisor
+    const u = (resolution === 1) ? 0 : (actualCol / (resolution - 1)) - 0.5
+    const v = (resolution === 1) ? 0 : (row / (resolution - 1)) - 0.5
     
     return { u, v }
   }
