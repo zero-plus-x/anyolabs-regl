@@ -212,7 +212,7 @@ export const generateSphereFromPoints = (existingPositions, radius = 1.0, jitter
 }
 
 // Match points from first array to closest/furthest points in second array (no reuse)
-export const proximityGenerator = (firstArray, secondArray, useFurthest = false) => {
+export const proximityGenerator = (firstArray, secondArray, useFurthest = false, candidateCount = 1) => {
   if (firstArray.length !== secondArray.length) {
     throw new Error('Arrays must have the same length')
   }
@@ -223,7 +223,7 @@ export const proximityGenerator = (firstArray, secondArray, useFurthest = false)
   // Create array of available indices from second array
   const availableIndices = Array.from({ length: count }, (_, i) => i)
   
-  // For each point in first array, find closest available point in second array
+  // For each point in first array, find closest/furthest available points in second array
   for (let i = 0; i < count; i++) {
     const firstPoint = [
       firstArray[i * 3],
@@ -231,11 +231,9 @@ export const proximityGenerator = (firstArray, secondArray, useFurthest = false)
       firstArray[i * 3 + 2]
     ]
     
-    let bestIndex = -1
-    let bestDistance = useFurthest ? -Infinity : Infinity
-    let bestAvailableIndex = -1
+    // Calculate distances to all available points
+    const candidates = []
     
-    // Check all available points in second array
     for (let j = 0; j < availableIndices.length; j++) {
       const secondIndex = availableIndices[j]
       const secondPoint = [
@@ -250,20 +248,28 @@ export const proximityGenerator = (firstArray, secondArray, useFurthest = false)
       const dz = firstPoint[2] - secondPoint[2]
       const distanceSquared = dx * dx + dy * dy + dz * dz
       
-      if (useFurthest ? (distanceSquared > bestDistance) : (distanceSquared < bestDistance)) {
-        bestDistance = distanceSquared
-        bestIndex = secondIndex
-        bestAvailableIndex = j
-      }
+      candidates.push({
+        distance: distanceSquared,
+        secondIndex: secondIndex,
+        availableIndex: j
+      })
     }
     
-    // Copy the best matching point to result
-    result[i * 3] = secondArray[bestIndex * 3]
-    result[i * 3 + 1] = secondArray[bestIndex * 3 + 1]
-    result[i * 3 + 2] = secondArray[bestIndex * 3 + 2]
+    // Sort candidates by distance
+    candidates.sort((a, b) => useFurthest ? (b.distance - a.distance) : (a.distance - b.distance))
+    
+    // Pick randomly from the top candidateCount candidates
+    const numCandidates = Math.min(candidateCount, candidates.length)
+    const randomIndex = Math.floor(Math.random() * numCandidates)
+    const chosen = candidates[randomIndex]
+    
+    // Copy the chosen point to result
+    result[i * 3] = secondArray[chosen.secondIndex * 3]
+    result[i * 3 + 1] = secondArray[chosen.secondIndex * 3 + 1]
+    result[i * 3 + 2] = secondArray[chosen.secondIndex * 3 + 2]
     
     // Remove the used index from available indices
-    availableIndices.splice(bestAvailableIndex, 1)
+    availableIndices.splice(chosen.availableIndex, 1)
   }
   
   return result
