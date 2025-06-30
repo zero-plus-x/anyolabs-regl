@@ -343,57 +343,91 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
     const positions = new Float32Array(count * 3)
     
     // Calculate 3D grid dimensions to fit count points
-    const gridSize = Math.ceil(Math.pow(count, 1.0 / 3.0))
+    // We'll generate more points than needed and filter to get exactly count points
+    const gridSize = Math.ceil(Math.pow(count * 1.5, 1.0 / 3.0)) // Generate extra to account for filtering
     
+    const validPoints = []
+    
+    // Generate all grid points and filter valid ones
+    for (let x = 0; x < gridSize; x++) {
+      for (let y = 0; y < gridSize; y++) {
+        for (let z = 0; z < gridSize; z++) {
+          // Create evenly spaced grid coordinates in [-1, 1] cube
+          const gridX = gridSize === 1 ? 0 : (2 * x / (gridSize - 1)) - 1
+          const gridY = gridSize === 1 ? 0 : (2 * y / (gridSize - 1)) - 1
+          const gridZ = gridSize === 1 ? 0 : (2 * z / (gridSize - 1)) - 1
+          
+          // Calculate distance from center for this grid point
+          const originalRadius = Math.sqrt(gridX * gridX + gridY * gridY + gridZ * gridZ)
+          
+          // Only include points that are within unit sphere
+          if (originalRadius <= 1.0) {
+            // Calculate direction vector (normalized grid position)
+            let dirX, dirY, dirZ
+            if (originalRadius === 0) {
+              // Center point - no direction needed
+              dirX = dirY = dirZ = 0
+            } else {
+              dirX = gridX / originalRadius
+              dirY = gridY / originalRadius
+              dirZ = gridZ / originalRadius
+            }
+            
+            // Apply radial jitter - move point closer or further from center
+            let finalRadius = originalRadius
+            if (jitterAmount > 0 && originalRadius > 0) {
+              // Generate radial jitter that can move point inward or outward
+              const radialJitter = (Math.random() - 0.5) * jitterAmount
+              finalRadius = originalRadius + radialJitter
+              
+              // Clamp to ensure we stay within unit sphere and don't go negative
+              finalRadius = Math.max(0, Math.min(finalRadius, 1.0))
+            }
+            
+            // Store the valid point
+            validPoints.push([
+              finalRadius * dirX,
+              finalRadius * dirY,
+              finalRadius * dirZ
+            ])
+          }
+        }
+      }
+    }
+    
+    // If we don't have enough valid points, fill with random points
+    while (validPoints.length < count) {
+      // Generate random point in unit sphere using rejection sampling
+      let x, y, z, radiusSquared
+      do {
+        x = 2 * Math.random() - 1
+        y = 2 * Math.random() - 1
+        z = 2 * Math.random() - 1
+        radiusSquared = x * x + y * y + z * z
+      } while (radiusSquared > 1.0)
+      
+      // Apply jitter
+      if (jitterAmount > 0) {
+        const radius = Math.sqrt(radiusSquared)
+        if (radius > 0) {
+          const radialJitter = (Math.random() - 0.5) * jitterAmount
+          const newRadius = Math.max(0, Math.min(radius + radialJitter, 1.0))
+          const scale = newRadius / radius
+          x *= scale
+          y *= scale
+          z *= scale
+        }
+      }
+      
+      validPoints.push([x, y, z])
+    }
+    
+    // Take exactly count points and fill the positions array
     for (let i = 0; i < count; i++) {
-      // Convert linear index to 3D grid coordinates
-      const x = i % gridSize
-      const y = Math.floor(i / gridSize) % gridSize
-      const z = Math.floor(i / (gridSize * gridSize))
-      
-      // Create evenly spaced grid coordinates in [-1, 1] cube
-      const gridX = gridSize === 1 ? 0 : (2 * x / (gridSize - 1)) - 1
-      const gridY = gridSize === 1 ? 0 : (2 * y / (gridSize - 1)) - 1
-      const gridZ = gridSize === 1 ? 0 : (2 * z / (gridSize - 1)) - 1
-      
-      // Calculate distance from center for this grid point
-      const originalRadius = Math.sqrt(gridX * gridX + gridY * gridY + gridZ * gridZ)
-      
-      // Skip points that are already outside unit sphere
-      if (originalRadius > 1.0) {
-        // Place at origin
-        positions[i * 3] = 0
-        positions[i * 3 + 1] = 0
-        positions[i * 3 + 2] = 0
-        continue
-      }
-      
-      // Calculate direction vector (normalized grid position)
-      let dirX, dirY, dirZ
-      if (originalRadius === 0) {
-        // Center point - no direction needed
-        dirX = dirY = dirZ = 0
-      } else {
-        dirX = gridX / originalRadius
-        dirY = gridY / originalRadius
-        dirZ = gridZ / originalRadius
-      }
-      
-      // Apply radial jitter - move point closer or further from center
-      let finalRadius = originalRadius
-      if (jitterAmount > 0 && originalRadius > 0) {
-        // Generate radial jitter that can move point inward or outward
-        const radialJitter = (Math.random() - 0.5) * jitterAmount
-        finalRadius = originalRadius + radialJitter
-        
-        // Clamp to ensure we stay within unit sphere and don't go negative
-        finalRadius = Math.max(0, Math.min(finalRadius, 1.0))
-      }
-      
-      // Apply final radius to direction vector
-      positions[i * 3] = finalRadius * dirX
-      positions[i * 3 + 1] = finalRadius * dirY
-      positions[i * 3 + 2] = finalRadius * dirZ
+      const point = validPoints[i % validPoints.length]
+      positions[i * 3] = point[0]
+      positions[i * 3 + 1] = point[1]
+      positions[i * 3 + 2] = point[2]
     }
     
     return positions
