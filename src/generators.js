@@ -342,12 +342,25 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
   export const generateGradientVolumeSphere = (count, jitterAmount = 0.05, densityPower = 2.0) => {
     const positions = new Float32Array(count * 3)
     
+    // Calculate 3D grid dimensions to fit count points
+    const gridSize = Math.ceil(Math.pow(count, 1.0 / 3.0))
+    
     for (let i = 0; i < count; i++) {
-      // Start with uniform volume distribution (cube root for even spacing)
-      const uniformRadius = Math.pow(Math.random(), 1.0 / 3.0)
+      // Convert linear index to 3D grid coordinates
+      const x = i % gridSize
+      const y = Math.floor(i / gridSize) % gridSize
+      const z = Math.floor(i / (gridSize * gridSize))
+      
+      // Normalize grid coordinates to [0, 1] range
+      const normalizedX = gridSize === 1 ? 0.5 : x / (gridSize - 1)
+      const normalizedY = gridSize === 1 ? 0.5 : y / (gridSize - 1)
+      const normalizedZ = gridSize === 1 ? 0.5 : z / (gridSize - 1)
+      
+      // Convert to spherical coordinates
+      // Map grid position to uniform radius distribution (0 to 1)
+      const uniformRadius = Math.pow((normalizedX + normalizedY + normalizedZ) / 3.0, 1.0 / 3.0)
       
       // Apply exponential distance adjustment function
-      // This creates a curve that modifies the distance from center
       let adjustedRadius
       
       if (densityPower === 1.0) {
@@ -355,33 +368,30 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
         adjustedRadius = uniformRadius
       } else if (densityPower < 1.0) {
         // Exponential expansion (pushes points outward)
-        // f(x) = x^(1/densityPower) where densityPower < 1
         adjustedRadius = Math.pow(uniformRadius, 1.0 / densityPower)
       } else {
         // Exponential compression (pulls points inward)
-        // f(x) = x^densityPower where densityPower > 1
         adjustedRadius = Math.pow(uniformRadius, densityPower)
       }
       
       // Clamp to ensure we stay within unit sphere
       adjustedRadius = Math.min(adjustedRadius, 1.0)
       
-      // Generate uniform angular distribution
-      const theta = Math.acos(2 * Math.random() - 1)
-      const phi = 2 * Math.PI * Math.random()
+      // Generate angles based on grid position for even angular distribution
+      const theta = Math.acos(2 * normalizedY - 1) // polar angle
+      const phi = 2 * Math.PI * normalizedZ // azimuthal angle
       
       // Convert to Cartesian coordinates
       const sinTheta = Math.sin(theta)
-      const x = adjustedRadius * sinTheta * Math.cos(phi)
-      const y = adjustedRadius * Math.cos(theta)
-      const z = adjustedRadius * sinTheta * Math.sin(phi)
+      const cartX = adjustedRadius * sinTheta * Math.cos(phi)
+      const cartY = adjustedRadius * Math.cos(theta)
+      const cartZ = adjustedRadius * sinTheta * Math.sin(phi)
       
       // Apply jitter
       const jitter = jitterAmount
-      const offset = (Math.random() - 0.5) * jitter
-      positions[i * 3] = x + offset
-      positions[i * 3 + 1] = y + offset
-      positions[i * 3 + 2] = z + offset
+      positions[i * 3] = cartX + (Math.random() - 0.5) * jitter
+      positions[i * 3 + 1] = cartY + (Math.random() - 0.5) * jitter
+      positions[i * 3 + 2] = cartZ + (Math.random() - 0.5) * jitter
     }
     
     return positions
