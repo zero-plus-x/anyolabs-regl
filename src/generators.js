@@ -211,8 +211,8 @@ export const generateSphereFromPoints = (existingPositions, radius = 1.0, jitter
   return positions
 }
 
-// Match points from first array to closest points in second array (no reuse)
-export const proximityGenerator = (firstArray, secondArray) => {
+// Match points from first array to closest/furthest points in second array (no reuse)
+export const proximityGenerator = (firstArray, secondArray, useFurthest = false) => {
   if (firstArray.length !== secondArray.length) {
     throw new Error('Arrays must have the same length')
   }
@@ -231,9 +231,9 @@ export const proximityGenerator = (firstArray, secondArray) => {
       firstArray[i * 3 + 2]
     ]
     
-    let closestIndex = -1
-    let closestDistance = Infinity
-    let closestAvailableIndex = -1
+    let bestIndex = -1
+    let bestDistance = useFurthest ? -Infinity : Infinity
+    let bestAvailableIndex = -1
     
     // Check all available points in second array
     for (let j = 0; j < availableIndices.length; j++) {
@@ -250,20 +250,20 @@ export const proximityGenerator = (firstArray, secondArray) => {
       const dz = firstPoint[2] - secondPoint[2]
       const distanceSquared = dx * dx + dy * dy + dz * dz
       
-      if (distanceSquared < closestDistance) {
-        closestDistance = distanceSquared
-        closestIndex = secondIndex
-        closestAvailableIndex = j
+      if (useFurthest ? (distanceSquared > bestDistance) : (distanceSquared < bestDistance)) {
+        bestDistance = distanceSquared
+        bestIndex = secondIndex
+        bestAvailableIndex = j
       }
     }
     
-    // Copy the closest point to result
-    result[i * 3] = secondArray[closestIndex * 3]
-    result[i * 3 + 1] = secondArray[closestIndex * 3 + 1]
-    result[i * 3 + 2] = secondArray[closestIndex * 3 + 2]
+    // Copy the best matching point to result
+    result[i * 3] = secondArray[bestIndex * 3]
+    result[i * 3 + 1] = secondArray[bestIndex * 3 + 1]
+    result[i * 3 + 2] = secondArray[bestIndex * 3 + 2]
     
     // Remove the used index from available indices
-    availableIndices.splice(closestAvailableIndex, 1)
+    availableIndices.splice(bestAvailableIndex, 1)
   }
   
   return result
