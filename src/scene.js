@@ -2,7 +2,7 @@ import createREGL from 'regl'
 import { resizeRegl, noise3D } from './utils'
 import { createDrawParticlesCommand } from './commands/particles'
 import { createSetupCamera } from './commands/camera'
-import { generateCenterWeightedVolumeSphere, generateLayeredVolumeSphere, generateGradientVolumeSphere, generateCubeSurface } from './generators'
+import { generateSphereFromPoints, generateCubeSurface } from './generators'
 
 const canvas = document.getElementById('heroImage')
 
@@ -57,19 +57,19 @@ const calculateMinMax = (positions) => {
     max: [maxX, maxY, maxZ],
   }
 }
-// Set positions and calculate bounds for sphere
-sphere.POS = generateCenterWeightedVolumeSphere(sphere.COUNT, 0.05, 0.2)
-
-const sphere1Bounds = calculateMinMax(sphere.POS)
-sphere.POS_MIN = sphere1Bounds.min
-sphere.POS_MAX = sphere1Bounds.max
-
 // Set positions and calculate bounds for cube
 cube.POS = generateCubeSurface(cube.COUNT, 0.09)
 
 const cubeBounds = calculateMinMax(cube.POS)
 cube.POS_MIN = cubeBounds.min
 cube.POS_MAX = cubeBounds.max
+// Set positions and calculate bounds for sphere
+sphere.POS = generateSphereFromPoints(cube.POS, 1.0, 0.05)
+
+const sphere1Bounds = calculateMinMax(sphere.POS)
+sphere.POS_MIN = sphere1Bounds.min
+sphere.POS_MAX = sphere1Bounds.max
+
 
 console.log(sphere, cube)
 
