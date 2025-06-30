@@ -1,5 +1,4 @@
 precision highp float;
-precision mediump sampler2D;
 precision mediump int;
 
 uniform mat4 modelMatrix;
