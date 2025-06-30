@@ -518,7 +518,7 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
 
   // ... existing code ...
 
-export const generateCubeSurface = (count, jitterAmount = 0.05) => {
+export const generateCubeSurface = (count, jitterAmount = 0.05, edgeStickiness = true) => {
   const positions = new Float32Array(count * 3)
   
   // Define the 6 faces of a unit cube in snake order

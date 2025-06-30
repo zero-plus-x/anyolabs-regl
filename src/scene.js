@@ -58,7 +58,7 @@ const calculateMinMax = (positions) => {
   }
 }
 // Set positions and calculate bounds for cube
-cube.POS = generateCubeSurface(cube.COUNT, 0.04)
+cube.POS = generateCubeSurface(cube.COUNT, 0.04, false) // Allow edge points to move inside faces
 
 const cubeBounds = calculateMinMax(cube.POS)
 cube.POS_MIN = cubeBounds.min
