@@ -127,6 +127,90 @@ export const generateVolumeSpherePerfect = (count, jitterAmount = 0.05) => {
   return positions
 }
 
+// Project existing points onto sphere surface
+export const generateSphereFromPoints = (existingPositions, radius = 1.0, jitterAmount = 0.05) => {
+  const count = existingPositions.length / 3
+  const positions = new Float32Array(count * 3)
+  
+  for (let i = 0; i < count; i++) {
+    const baseIndex = i * 3
+    
+    // Get the original point
+    const x = existingPositions[baseIndex]
+    const y = existingPositions[baseIndex + 1]
+    const z = existingPositions[baseIndex + 2]
+    
+    // Calculate distance from origin
+    const distance = Math.sqrt(x * x + y * y + z * z)
+    
+    // Handle the case where point is at origin
+    if (distance === 0) {
+      // Generate a random point on sphere surface
+      const theta = Math.acos(2 * Math.random() - 1)
+      const phi = 2 * Math.PI * Math.random()
+      const sinTheta = Math.sin(theta)
+      
+      positions[baseIndex] = radius * sinTheta * Math.cos(phi)
+      positions[baseIndex + 1] = radius * Math.cos(theta)
+      positions[baseIndex + 2] = radius * sinTheta * Math.sin(phi)
+    } else {
+      // Normalize to unit sphere and scale by radius
+      const scale = radius / distance
+      positions[baseIndex] = x * scale
+      positions[baseIndex + 1] = y * scale
+      positions[baseIndex + 2] = z * scale
+    }
+    
+    // Apply jitter if specified
+    if (jitterAmount > 0) {
+      // Generate tangential jitter (perpendicular to radial direction)
+      const nx = positions[baseIndex]
+      const ny = positions[baseIndex + 1]
+      const nz = positions[baseIndex + 2]
+      
+      // Create two orthogonal tangent vectors
+      let tx, ty, tz, bx, by, bz
+      
+      // Choose a vector that's not parallel to the normal
+      if (Math.abs(nx) < 0.9) {
+        tx = 0; ty = -nz; tz = ny
+      } else {
+        tx = -nz; ty = 0; tz = nx
+      }
+      
+      // Normalize first tangent vector
+      const tLen = Math.sqrt(tx * tx + ty * ty + tz * tz)
+      tx /= tLen; ty /= tLen; tz /= tLen
+      
+      // Cross product to get second tangent vector
+      bx = ny * tz - nz * ty
+      by = nz * tx - nx * tz
+      bz = nx * ty - ny * tx
+      
+      // Apply random jitter in tangent plane
+      const jitterT = (Math.random() - 0.5) * jitterAmount
+      const jitterB = (Math.random() - 0.5) * jitterAmount
+      
+      positions[baseIndex] += jitterT * tx + jitterB * bx
+      positions[baseIndex + 1] += jitterT * ty + jitterB * by
+      positions[baseIndex + 2] += jitterT * tz + jitterB * bz
+      
+      // Re-normalize to maintain sphere surface
+      const newDistance = Math.sqrt(
+        positions[baseIndex] * positions[baseIndex] +
+        positions[baseIndex + 1] * positions[baseIndex + 1] +
+        positions[baseIndex + 2] * positions[baseIndex + 2]
+      )
+      const newScale = radius / newDistance
+      positions[baseIndex] *= newScale
+      positions[baseIndex + 1] *= newScale
+      positions[baseIndex + 2] *= newScale
+    }
+  }
+  
+  return positions
+}
+
 // ... existing code ...
 
 export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, centerBias = 0.3) => {
