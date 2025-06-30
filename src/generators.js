@@ -357,58 +357,43 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
       const gridZ = gridSize === 1 ? 0 : (2 * z / (gridSize - 1)) - 1
       
       // Calculate distance from center for this grid point
-      const uniformRadius = Math.sqrt(gridX * gridX + gridY * gridY + gridZ * gridZ)
+      const originalRadius = Math.sqrt(gridX * gridX + gridY * gridY + gridZ * gridZ)
       
       // Skip points that are already outside unit sphere
-      if (uniformRadius > 1.0) {
-        // Place at origin or skip - for now place at origin
+      if (originalRadius > 1.0) {
+        // Place at origin
         positions[i * 3] = 0
         positions[i * 3 + 1] = 0
         positions[i * 3 + 2] = 0
         continue
       }
       
-      // Apply exponential distance adjustment function
-      let adjustedRadius
-      
-      if (uniformRadius === 0) {
-        // Center point stays at center
-        adjustedRadius = 0
-      } else if (densityPower === 1.0) {
-        // Linear adjustment (no change)
-        adjustedRadius = uniformRadius
-      } else if (densityPower < 1.0) {
-        // Exponential expansion (pushes points outward)
-        adjustedRadius = Math.pow(uniformRadius, 1.0 / densityPower)
-      } else {
-        // Exponential compression (pulls points inward)
-        adjustedRadius = Math.pow(uniformRadius, densityPower)
-      }
-      
-      // Clamp to ensure we stay within unit sphere
-      adjustedRadius = Math.min(adjustedRadius, 1.0)
-      
       // Calculate direction vector (normalized grid position)
       let dirX, dirY, dirZ
-      if (uniformRadius === 0) {
+      if (originalRadius === 0) {
         // Center point - no direction needed
         dirX = dirY = dirZ = 0
       } else {
-        dirX = gridX / uniformRadius
-        dirY = gridY / uniformRadius
-        dirZ = gridZ / uniformRadius
+        dirX = gridX / originalRadius
+        dirY = gridY / originalRadius
+        dirZ = gridZ / originalRadius
       }
       
-      // Apply adjusted radius to direction vector
-      const finalX = adjustedRadius * dirX
-      const finalY = adjustedRadius * dirY
-      const finalZ = adjustedRadius * dirZ
+      // Apply radial jitter - move point closer or further from center
+      let finalRadius = originalRadius
+      if (jitterAmount > 0 && originalRadius > 0) {
+        // Generate radial jitter that can move point inward or outward
+        const radialJitter = (Math.random() - 0.5) * jitterAmount
+        finalRadius = originalRadius + radialJitter
+        
+        // Clamp to ensure we stay within unit sphere and don't go negative
+        finalRadius = Math.max(0, Math.min(finalRadius, 1.0))
+      }
       
-      // Apply jitter with bounds checking to prevent overlap
-      const maxJitter = Math.min(jitterAmount, 0.5 / gridSize) // Limit jitter to prevent overlap
-      positions[i * 3] = finalX + (Math.random() - 0.5) * maxJitter
-      positions[i * 3 + 1] = finalY + (Math.random() - 0.5) * maxJitter
-      positions[i * 3 + 2] = finalZ + (Math.random() - 0.5) * maxJitter
+      // Apply final radius to direction vector
+      positions[i * 3] = finalRadius * dirX
+      positions[i * 3 + 1] = finalRadius * dirY
+      positions[i * 3 + 2] = finalRadius * dirZ
     }
     
     return positions
