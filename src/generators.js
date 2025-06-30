@@ -373,23 +373,42 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
               dirZ = gridZ / originalRadius
             }
             
-            // Apply radial jitter - move point closer or further from center
-            let finalRadius = originalRadius
+            // Apply 3D spherical jitter - move point by distance and two angles
+            let finalX = gridX, finalY = gridY, finalZ = gridZ
+            
             if (jitterAmount > 0 && originalRadius > 0) {
-              // Generate radial jitter that can move point inward or outward
-              const radialJitter = (Math.random() - 0.5) * jitterAmount
-              finalRadius = originalRadius + radialJitter
+              // Generate jitter in spherical coordinates
+              const jitterDistance = (Math.random() - 0.5) * jitterAmount
+              const jitterTheta = (Math.random() - 0.5) * jitterAmount * Math.PI // polar angle jitter
+              const jitterPhi = (Math.random() - 0.5) * jitterAmount * 2 * Math.PI // azimuthal angle jitter
               
-              // Clamp to ensure we stay within unit sphere and don't go negative
-              finalRadius = Math.max(0, Math.min(finalRadius, 1.0))
+              // Convert original position to spherical coordinates
+              const originalTheta = Math.acos(gridY / originalRadius) // polar angle
+              const originalPhi = Math.atan2(gridZ, gridX) // azimuthal angle
+              
+              // Apply jitter to spherical coordinates
+              const newRadius = Math.max(0, Math.min(originalRadius + jitterDistance, 1.0))
+              const newTheta = Math.max(0, Math.min(originalTheta + jitterTheta, Math.PI))
+              const newPhi = originalPhi + jitterPhi
+              
+              // Convert back to Cartesian coordinates
+              const sinTheta = Math.sin(newTheta)
+              finalX = newRadius * sinTheta * Math.cos(newPhi)
+              finalY = newRadius * Math.cos(newTheta)
+              finalZ = newRadius * sinTheta * Math.sin(newPhi)
+              
+              // Ensure we stay within unit sphere
+              const finalRadius = Math.sqrt(finalX * finalX + finalY * finalY + finalZ * finalZ)
+              if (finalRadius > 1.0) {
+                const scale = 1.0 / finalRadius
+                finalX *= scale
+                finalY *= scale
+                finalZ *= scale
+              }
             }
             
             // Store the valid point
-            validPoints.push([
-              finalRadius * dirX,
-              finalRadius * dirY,
-              finalRadius * dirZ
-            ])
+            validPoints.push([finalX, finalY, finalZ])
           }
         }
       }
@@ -406,16 +425,29 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
         radiusSquared = x * x + y * y + z * z
       } while (radiusSquared > 1.0)
       
-      // Apply jitter
+      // Apply 3D spherical jitter
       if (jitterAmount > 0) {
         const radius = Math.sqrt(radiusSquared)
         if (radius > 0) {
-          const radialJitter = (Math.random() - 0.5) * jitterAmount
-          const newRadius = Math.max(0, Math.min(radius + radialJitter, 1.0))
-          const scale = newRadius / radius
-          x *= scale
-          y *= scale
-          z *= scale
+          // Generate jitter in spherical coordinates
+          const jitterDistance = (Math.random() - 0.5) * jitterAmount
+          const jitterTheta = (Math.random() - 0.5) * jitterAmount * Math.PI
+          const jitterPhi = (Math.random() - 0.5) * jitterAmount * 2 * Math.PI
+          
+          // Convert to spherical coordinates
+          const originalTheta = Math.acos(y / radius)
+          const originalPhi = Math.atan2(z, x)
+          
+          // Apply jitter
+          const newRadius = Math.max(0, Math.min(radius + jitterDistance, 1.0))
+          const newTheta = Math.max(0, Math.min(originalTheta + jitterTheta, Math.PI))
+          const newPhi = originalPhi + jitterPhi
+          
+          // Convert back to Cartesian
+          const sinTheta = Math.sin(newTheta)
+          x = newRadius * sinTheta * Math.cos(newPhi)
+          y = newRadius * Math.cos(newTheta)
+          z = newRadius * sinTheta * Math.sin(newPhi)
         }
       }
       
