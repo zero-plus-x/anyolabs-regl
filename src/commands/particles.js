@@ -33,7 +33,7 @@ export const createDrawParticlesCommand = (regl, data) => {
       'sphere.color.bezier': [0., 0., 1, 1],
       'sphere.posMin': data.sphere.POS_MIN,
       'sphere.posMax': data.sphere.POS_MAX,
-      'sphere.scale': 0.8,
+      'sphere.scale': 0.64,
 
       'cube.alpha.value': [1, 0],
       'cube.alpha.bezier': [0, 0, 1, 1],
