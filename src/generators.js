@@ -581,7 +581,7 @@ export const generateCubeSurface = (count, jitterAmount = 0.05, edgeStickiness =
     // Convert snake index to UV coordinates (at corners to cover full surface)
     let { u, v } = snakeToUV(localSnakeIndex, baseResolution)
     
-    // Apply smart jitter based on point location
+    // Apply radial jitter based on point location
     if (jitterAmount > 0) {
       // Check if point is on an edge (with small tolerance)
       const tolerance = 0.001
@@ -593,26 +593,42 @@ export const generateCubeSurface = (count, jitterAmount = 0.05, edgeStickiness =
       
       if (isOnCorner) {
         // Corner points don't jitter at all
-      } else if (isOnTopEdge || isOnBottomEdge) {
-        // Horizontal edge points can only jitter along u direction
-        const maxJitter = Math.min(0.5 + u, 0.5 - u)
-        const jitterU = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitter * 2, 0.8)
-        u = Math.max(-0.5, Math.min(0.5, u + jitterU))
-      } else if (isOnLeftEdge || isOnRightEdge) {
-        // Vertical edge points can only jitter along v direction
-        const maxJitter = Math.min(0.5 + v, 0.5 - v)
-        const jitterV = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitter * 2, 0.8)
-        v = Math.max(-0.5, Math.min(0.5, v + jitterV))
+      } else if ((isOnTopEdge || isOnBottomEdge || isOnLeftEdge || isOnRightEdge) && edgeStickiness) {
+        // Edge points stick to their edges when edgeStickiness is true
+        if (isOnTopEdge || isOnBottomEdge) {
+          // Horizontal edge points can only jitter along u direction
+          const maxDistance = Math.min(0.5 + u, 0.5 - u)
+          const jitterDistance = (Math.random() - 0.5) * jitterAmount * Math.min(maxDistance * 2, 0.8)
+          u = Math.max(-0.5, Math.min(0.5, u + jitterDistance))
+        } else if (isOnLeftEdge || isOnRightEdge) {
+          // Vertical edge points can only jitter along v direction
+          const maxDistance = Math.min(0.5 + v, 0.5 - v)
+          const jitterDistance = (Math.random() - 0.5) * jitterAmount * Math.min(maxDistance * 2, 0.8)
+          v = Math.max(-0.5, Math.min(0.5, v + jitterDistance))
+        }
       } else {
-        // Interior points get full 2D jitter with boundary constraints
-        const maxJitterU = Math.min(0.5 + u, 0.5 - u)
-        const maxJitterV = Math.min(0.5 + v, 0.5 - v)
+        // Interior points and edge points (when edgeStickiness is false) get radial jitter
+        const originalDistance = Math.sqrt(u * u + v * v)
+        const originalAngle = Math.atan2(v, u)
         
-        const jitterU = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitterU * 2, 1.0)
-        const jitterV = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitterV * 2, 1.0)
+        // Generate radial jitter: random offset distance and one angle
+        const jitterDistance = (Math.random() - 0.5) * jitterAmount * 0.5
+        const jitterAngle = (Math.random() - 0.5) * jitterAmount * Math.PI
         
-        u = Math.max(-0.5, Math.min(0.5, u + jitterU))
-        v = Math.max(-0.5, Math.min(0.5, v + jitterV))
+        // Apply jitter
+        const newDistance = Math.max(0, originalDistance + jitterDistance)
+        const newAngle = originalAngle + jitterAngle
+        
+        // Convert back to UV coordinates
+        let newU = newDistance * Math.cos(newAngle)
+        let newV = newDistance * Math.sin(newAngle)
+        
+        // Clamp to face boundaries to keep points within the side
+        newU = Math.max(-0.5, Math.min(0.5, newU))
+        newV = Math.max(-0.5, Math.min(0.5, newV))
+        
+        u = newU
+        v = newV
       }
     }
     
