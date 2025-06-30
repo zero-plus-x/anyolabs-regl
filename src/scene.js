@@ -65,7 +65,7 @@ sphere.POS_MIN = sphere1Bounds.min
 sphere.POS_MAX = sphere1Bounds.max
 
 // Set positions and calculate bounds for cube
-cube.POS = generateCubeSurface(cube.COUNT, 0.09)
+cube.POS = generateCenterWeightedVolumeSphere(cube.COUNT, 0.05, 0.2)
 
 const cubeBounds = calculateMinMax(cube.POS)
 cube.POS_MIN = cubeBounds.min
