@@ -23,6 +23,13 @@ uniform vec4 transitionBezier;
 
 uniform float uCurrentTime;
 
+// Add missing uniforms that are used in the shader
+uniform float uAlpha;
+uniform float uAmount;
+uniform vec3 color0;
+uniform vec3 color1;
+uniform vec3 position;
+
 struct ValueWithCurve {
   vec2 value;
   vec4 bezier;
