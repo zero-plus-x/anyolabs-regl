@@ -26,8 +26,8 @@ const updateMousePosition = (event) => {
 canvas.addEventListener('mousemove', updateMousePosition)
 
 const COUNT = 2200
-const sphere = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), COL: new Float32Array(Array.from({length: COUNT}).map(() => Math.max(Math.random() * 0.7, 0.5)).flatMap(v => [v,v,v])), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
-const cube = { COUNT: COUNT, POS: new Float32Array(COUNT * 3), COL: new Float32Array(Array.from({length: COUNT}).map(() => Math.max(Math.random() * 0.7, 0.5)).flatMap(v => [v,v,v])), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
+const sphere = { COUNT: COUNT, SIZE: new Float32Array(COUNT).fill(2.), POS: new Float32Array(COUNT * 3), COL: new Float32Array(Array.from({length: COUNT}).map(() => Math.max(Math.random() * 0.7, 0.5)).flatMap(v => [v,v,v])), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
+const cube = { COUNT: COUNT, SIZE: new Float32Array(COUNT).fill(2.), POS: new Float32Array(COUNT * 3), COL: new Float32Array(Array.from({length: COUNT}).map(() => Math.max(Math.random() * 0.7, 0.5)).flatMap(v => [v,v,v])), POS_MIN: [0, 0, 0], POS_MAX: [1, 1, 1] }
 
 // Calculate min/max values more efficiently
 const calculateMinMax = (positions) => {
@@ -58,7 +58,7 @@ const calculateMinMax = (positions) => {
   }
 }
 // Set positions and calculate bounds for cube
-cube.POS = generateCubeSurface(cube.COUNT, 0.04, false) // Allow edge points to move inside faces
+cube.POS = generateCubeSurface(cube.COUNT, 0.08, true) // Allow edge points to move inside faces
 
 const cubeBounds = calculateMinMax(cube.POS)
 cube.POS_MIN = cubeBounds.min

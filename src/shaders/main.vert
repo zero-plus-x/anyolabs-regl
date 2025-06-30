@@ -191,25 +191,23 @@ void main() {
   gl_Position = position;
 
   // Morph point size based on both objects
-  float spherePointSize = length(snoise3(sphere_position * 10.)) * 2.2;
-  float cubePointSize = length(snoise3(cube_position * 10.)) * 2.2;
+  float spherePointSize = length(snoise3(sphere_position * 3.)) * 5.;
+  float cubePointSize = length(snoise3(cube_position * 3.)) * 5.;
   float morphedPointSize = mix(spherePointSize, cubePointSize, morphAmount);
-  float pointSize = clamp(morphedPointSize, 1.6, 1.8);
+  float pointSize = clamp(morphedPointSize, 1., 4.);
   gl_PointSize = pointSize;
 
   float alpha1 = (brownian1 - 0.4) + inversedZDepth;
 
   float alpha2 = brownian1;
   // logosAlpha += alphaNoise1;
-  float pointAlpha = clamp(alpha2 * 10.0, .5, 1.);
+  float pointAlpha = clamp(alpha2 * 10.0, .75, 1.);
   // pointAlpha = alpha2 * uAlpha;
-
-  vec3 logosColor = getGelColor(zDepth);
   
   // Morph colors between sphere and cube
-  vec3 sphereColor = clamp(sphere_color, 0.75, 1.);
-  vec3 cubeColor = clamp(cube_color, 0.75, 1.);
+  vec3 sphereColor = clamp(sphere_color, 0., 1.);
+  vec3 cubeColor = clamp(cube_color, 0., 1.);
   vec3 morphedColor = mix(sphereColor, cubeColor, morphAmount);
 
-  vColor = vec4(vec3(1.), 1.);
+  vColor = vec4(morphedColor, pointAlpha);
 }
