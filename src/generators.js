@@ -339,7 +339,7 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
   }
   
   // Alternative with more sophisticated density control
-  export const generateGradientVolumeSphere = (count, jitterAmount = 0.05, densityPower = 2.0) => {
+  export const generateGradientVolumeSphere = (count, jitterAmount = 0.05) => {
     const positions = new Float32Array(count * 3)
     
     // Calculate 3D grid dimensions to fit count points
