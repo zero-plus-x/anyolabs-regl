@@ -351,19 +351,30 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
       const y = Math.floor(i / gridSize) % gridSize
       const z = Math.floor(i / (gridSize * gridSize))
       
-      // Normalize grid coordinates to [0, 1] range
-      const normalizedX = gridSize === 1 ? 0.5 : x / (gridSize - 1)
-      const normalizedY = gridSize === 1 ? 0.5 : y / (gridSize - 1)
-      const normalizedZ = gridSize === 1 ? 0.5 : z / (gridSize - 1)
+      // Create evenly spaced grid coordinates in [-1, 1] cube
+      const gridX = gridSize === 1 ? 0 : (2 * x / (gridSize - 1)) - 1
+      const gridY = gridSize === 1 ? 0 : (2 * y / (gridSize - 1)) - 1
+      const gridZ = gridSize === 1 ? 0 : (2 * z / (gridSize - 1)) - 1
       
-      // Convert to spherical coordinates
-      // Map grid position to uniform radius distribution (0 to 1)
-      const uniformRadius = Math.pow((normalizedX + normalizedY + normalizedZ) / 3.0, 1.0 / 3.0)
+      // Calculate distance from center for this grid point
+      const uniformRadius = Math.sqrt(gridX * gridX + gridY * gridY + gridZ * gridZ)
+      
+      // Skip points that are already outside unit sphere
+      if (uniformRadius > 1.0) {
+        // Place at origin or skip - for now place at origin
+        positions[i * 3] = 0
+        positions[i * 3 + 1] = 0
+        positions[i * 3 + 2] = 0
+        continue
+      }
       
       // Apply exponential distance adjustment function
       let adjustedRadius
       
-      if (densityPower === 1.0) {
+      if (uniformRadius === 0) {
+        // Center point stays at center
+        adjustedRadius = 0
+      } else if (densityPower === 1.0) {
         // Linear adjustment (no change)
         adjustedRadius = uniformRadius
       } else if (densityPower < 1.0) {
@@ -377,21 +388,27 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
       // Clamp to ensure we stay within unit sphere
       adjustedRadius = Math.min(adjustedRadius, 1.0)
       
-      // Generate angles based on grid position for even angular distribution
-      const theta = Math.acos(2 * normalizedY - 1) // polar angle
-      const phi = 2 * Math.PI * normalizedZ // azimuthal angle
+      // Calculate direction vector (normalized grid position)
+      let dirX, dirY, dirZ
+      if (uniformRadius === 0) {
+        // Center point - no direction needed
+        dirX = dirY = dirZ = 0
+      } else {
+        dirX = gridX / uniformRadius
+        dirY = gridY / uniformRadius
+        dirZ = gridZ / uniformRadius
+      }
       
-      // Convert to Cartesian coordinates
-      const sinTheta = Math.sin(theta)
-      const cartX = adjustedRadius * sinTheta * Math.cos(phi)
-      const cartY = adjustedRadius * Math.cos(theta)
-      const cartZ = adjustedRadius * sinTheta * Math.sin(phi)
+      // Apply adjusted radius to direction vector
+      const finalX = adjustedRadius * dirX
+      const finalY = adjustedRadius * dirY
+      const finalZ = adjustedRadius * dirZ
       
-      // Apply jitter
-      const jitter = jitterAmount
-      positions[i * 3] = cartX + (Math.random() - 0.5) * jitter
-      positions[i * 3 + 1] = cartY + (Math.random() - 0.5) * jitter
-      positions[i * 3 + 2] = cartZ + (Math.random() - 0.5) * jitter
+      // Apply jitter with bounds checking to prevent overlap
+      const maxJitter = Math.min(jitterAmount, 0.5 / gridSize) // Limit jitter to prevent overlap
+      positions[i * 3] = finalX + (Math.random() - 0.5) * maxJitter
+      positions[i * 3 + 1] = finalY + (Math.random() - 0.5) * maxJitter
+      positions[i * 3 + 2] = finalZ + (Math.random() - 0.5) * maxJitter
     }
     
     return positions
