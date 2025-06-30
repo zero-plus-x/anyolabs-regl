@@ -10,8 +10,10 @@ export const createDrawParticlesCommand = (regl, data) => {
     attributes: {
       sphere_position: data.sphere.POS,
       sphere_color: data.sphere.COL,
+      sphere_size: data.sphere.SIZE,
       cube_position: data.cube.POS,
       cube_color: data.cube.COL,
+      cube_size: data.cube.SIZE,
     },
     uniforms: {
       modelMatrix: (_, { position }) => mat4.translate([], mat4.identity([]), position),

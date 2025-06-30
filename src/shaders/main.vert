@@ -35,8 +35,10 @@ struct ColorWithCurve {
 
 attribute vec3 sphere_position;
 attribute vec3 sphere_color;
+attribute float sphere_size;
 attribute vec3 cube_position;
 attribute vec3 cube_color;
+attribute float cube_size;
 
 struct ObjectData {
   ValueWithCurve alpha;
@@ -191,10 +193,10 @@ void main() {
   gl_Position = position;
 
   // Morph point size based on both objects
-  float spherePointSize = length(snoise3(sphere_position * 3.)) * 5.;
-  float cubePointSize = length(snoise3(cube_position * 3.)) * 5.;
+  float spherePointSize = sphere_size + length(snoise3(sphere_position * 3.)) * 2.;
+  float cubePointSize = cube_size + length(snoise3(cube_position * 3.)) * 2.;
   float morphedPointSize = mix(spherePointSize, cubePointSize, morphAmount);
-  float pointSize = clamp(morphedPointSize, 1., 4.);
+  float pointSize = clamp(morphedPointSize, 1., 6.);
   gl_PointSize = pointSize;
 
   float alpha1 = (brownian1 - 0.4) + inversedZDepth;
