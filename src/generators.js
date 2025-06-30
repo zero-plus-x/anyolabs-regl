@@ -72,61 +72,6 @@ export const generateCurvatureAwareGridSphere = (count, jitterAmount = 0.05) => 
   return positions
 } // ... existing code ...
 
-export const generateVolumeSphere = (count, jitterAmount = 0.05) => {
-  const positions = new Float32Array(count * 3)
-
-  for (let i = 0; i < count; i++) {
-    // Generate random radius with cube root distribution for uniform volume density
-    // This ensures points are distributed evenly throughout the volume, not concentrated at center
-    const radius = Math.pow(Math.random(), 1 / 3)
-
-    // Generate random angles for uniform angular distribution
-    const theta = Math.acos(2 * Math.random() - 1) // polar angle [0, π]
-    const phi = 2 * Math.PI * Math.random() // azimuthal angle [0, 2π]
-
-    // Convert spherical to Cartesian coordinates
-    const sinTheta = Math.sin(theta)
-    const x = radius * sinTheta * Math.cos(phi)
-    const y = radius * Math.cos(theta)
-    const z = radius * sinTheta * Math.sin(phi)
-
-    // Apply jitter to break up any patterns
-    const jitter = jitterAmount
-    positions[i * 3] = x + (Math.random() - 0.5) * jitter
-    positions[i * 3 + 1] = y + (Math.random() - 0.5) * jitter
-    positions[i * 3 + 2] = z + (Math.random() - 0.5) * jitter
-  }
-
-  return positions
-}
-
-// Alternative approach using rejection sampling for perfect sphere bounds
-export const generateVolumeSpherePerfect = (count, jitterAmount = 0.05) => {
-  const positions = new Float32Array(count * 3)
-
-  let i = 0
-  while (i < count) {
-    // Generate random point in cube [-1, 1]³
-    const x = 2 * Math.random() - 1
-    const y = 2 * Math.random() - 1
-    const z = 2 * Math.random() - 1
-
-    // Check if point is inside unit sphere
-    const distanceSquared = x * x + y * y + z * z
-    if (distanceSquared <= 1.0) {
-      // Point is inside sphere, add it with jitter
-      const jitter = jitterAmount
-      positions[i * 3] = x + (Math.random() - 0.5) * jitter
-      positions[i * 3 + 1] = y + (Math.random() - 0.5) * jitter
-      positions[i * 3 + 2] = z + (Math.random() - 0.5) * jitter
-      i++
-    }
-    // If point is outside sphere, reject it and try again
-  }
-
-  return positions
-}
-
 // Project existing points onto sphere surface
 export const generateSphereFromPoints = (existingPositions, radius = 1.0, jitterAmount = 0.05) => {
   const count = existingPositions.length / 3
@@ -339,7 +284,7 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
   }
   
   // Alternative with more sophisticated density control
-  export const generateGradientVolumeSphere = (count, jitterAmount = 0.05) => {
+  export const generateVolumeSphere = (count, jitterAmount = 0.05) => {
     const positions = new Float32Array(count * 3)
     
     // Calculate 3D grid dimensions to fit count points
@@ -518,7 +463,7 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
 
   // ... existing code ...
 
-export const generateCubeSurface = (count, jitterAmount = 0.05, edgeStickiness = true) => {
+export const generateCubeSurface = (count, jitterAmount = 0.05) => {
   const positions = new Float32Array(count * 3)
   
   // Define the 6 faces of a unit cube in snake order
@@ -581,7 +526,7 @@ export const generateCubeSurface = (count, jitterAmount = 0.05, edgeStickiness =
     // Convert snake index to UV coordinates (at corners to cover full surface)
     let { u, v } = snakeToUV(localSnakeIndex, baseResolution)
     
-    // Apply radial jitter based on point location
+    // Apply smart jitter based on point location
     if (jitterAmount > 0) {
       // Check if point is on an edge (with small tolerance)
       const tolerance = 0.001
@@ -593,42 +538,26 @@ export const generateCubeSurface = (count, jitterAmount = 0.05, edgeStickiness =
       
       if (isOnCorner) {
         // Corner points don't jitter at all
-      } else if ((isOnTopEdge || isOnBottomEdge || isOnLeftEdge || isOnRightEdge) && edgeStickiness) {
-        // Edge points stick to their edges when edgeStickiness is true
-        if (isOnTopEdge || isOnBottomEdge) {
-          // Horizontal edge points can only jitter along u direction
-          const maxDistance = Math.min(0.5 + u, 0.5 - u)
-          const jitterDistance = (Math.random() - 0.5) * jitterAmount * Math.min(maxDistance * 2, 0.8)
-          u = Math.max(-0.5, Math.min(0.5, u + jitterDistance))
-        } else if (isOnLeftEdge || isOnRightEdge) {
-          // Vertical edge points can only jitter along v direction
-          const maxDistance = Math.min(0.5 + v, 0.5 - v)
-          const jitterDistance = (Math.random() - 0.5) * jitterAmount * Math.min(maxDistance * 2, 0.8)
-          v = Math.max(-0.5, Math.min(0.5, v + jitterDistance))
-        }
+      } else if (isOnTopEdge || isOnBottomEdge) {
+        // Horizontal edge points can only jitter along u direction
+        const maxJitter = Math.min(0.5 + u, 0.5 - u)
+        const jitterU = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitter * 2, 0.8)
+        u = Math.max(-0.5, Math.min(0.5, u + jitterU))
+      } else if (isOnLeftEdge || isOnRightEdge) {
+        // Vertical edge points can only jitter along v direction
+        const maxJitter = Math.min(0.5 + v, 0.5 - v)
+        const jitterV = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitter * 2, 0.8)
+        v = Math.max(-0.5, Math.min(0.5, v + jitterV))
       } else {
-        // Interior points and edge points (when edgeStickiness is false) get radial jitter
-        const originalDistance = Math.sqrt(u * u + v * v)
-        const originalAngle = Math.atan2(v, u)
+        // Interior points get full 2D jitter with boundary constraints
+        const maxJitterU = Math.min(0.5 + u, 0.5 - u)
+        const maxJitterV = Math.min(0.5 + v, 0.5 - v)
         
-        // Generate radial jitter: random offset distance and one angle
-        const jitterDistance = (Math.random() - 0.5) * jitterAmount * 0.5
-        const jitterAngle = (Math.random() - 0.5) * jitterAmount * Math.PI
+        const jitterU = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitterU * 2, 1.0)
+        const jitterV = (Math.random() - 0.5) * jitterAmount * Math.min(maxJitterV * 2, 1.0)
         
-        // Apply jitter
-        const newDistance = Math.max(0, originalDistance + jitterDistance)
-        const newAngle = originalAngle + jitterAngle
-        
-        // Convert back to UV coordinates
-        let newU = newDistance * Math.cos(newAngle)
-        let newV = newDistance * Math.sin(newAngle)
-        
-        // Clamp to face boundaries to keep points within the side
-        newU = Math.max(-0.5, Math.min(0.5, newU))
-        newV = Math.max(-0.5, Math.min(0.5, newV))
-        
-        u = newU
-        v = newV
+        u = Math.max(-0.5, Math.min(0.5, u + jitterU))
+        v = Math.max(-0.5, Math.min(0.5, v + jitterV))
       }
     }
     
