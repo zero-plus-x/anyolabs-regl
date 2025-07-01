@@ -134,7 +134,26 @@ const regl = createREGL({
                 : (2 - Math.pow(2, -20 * t + 10)) / 2;
               return easeInOutExpo;
             })(),
-            rotationTime: time * 0.3, // Simple rotation time for vertex shader
+            rotationTime: (() => {
+              // Calculate morph amount to sync rotation speed
+              const t = (Math.sin(time * 0.2) * 0.5 + 0.5);
+              const easeInOutExpo = t === 0 
+                ? 0 
+                : t === 1 
+                ? 1 
+                : t < 0.5 
+                ? Math.pow(2, 20 * t - 10) / 2
+                : (2 - Math.pow(2, -20 * t + 10)) / 2;
+              
+              // Calculate rotation speed based on morph transition
+              // Speed up during transitions (middle values), slow down at extremes
+              const morphTransitionSpeed = Math.sin(easeInOutExpo * Math.PI); // 0 at extremes, 1 at middle
+              const baseSpeed = 0.1; // Minimum rotation speed
+              const maxSpeed = 0.6; // Maximum rotation speed during transitions
+              const rotationSpeed = baseSpeed + morphTransitionSpeed * (maxSpeed - baseSpeed);
+              
+              return time * rotationSpeed;
+            })(),
           })
         },
       )
