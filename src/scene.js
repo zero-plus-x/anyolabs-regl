@@ -143,10 +143,11 @@ const regl = createREGL({
               // Calculate speed modifier based on morph state
               const morphSpeedFactor = 1 - Math.pow(Math.sin(morphAmount * Math.PI), 2) * 0.7;
               
-              // Create three independent rotation axes with varying speeds
-              const speedX = ((Math.sin(time * 0.15) * 0.5 + 0.5) * 1.5 + 0.3) * morphSpeedFactor;
-              const speedY = ((Math.sin(time * 0.23) * 0.5 + 0.5) * 1.2 + 0.4) * morphSpeedFactor;
-              const speedZ = ((Math.sin(time * 0.31) * 0.5 + 0.5) * 1.0 + 0.2) * morphSpeedFactor;
+              // Create three independent rotation axes with varying speeds (capped at max)
+              const maxSpeed = 0.8; // Maximum rotation speed limit
+              const speedX = Math.min(((Math.sin(time * 0.15) * 0.5 + 0.5) * 1.5 + 0.3) * morphSpeedFactor, maxSpeed);
+              const speedY = Math.min(((Math.sin(time * 0.23) * 0.5 + 0.5) * 1.2 + 0.4) * morphSpeedFactor, maxSpeed);
+              const speedZ = Math.min(((Math.sin(time * 0.31) * 0.5 + 0.5) * 1.0 + 0.2) * morphSpeedFactor, maxSpeed);
               
               // Calculate rotation angles for each axis
               const angleX = time * speedX;
