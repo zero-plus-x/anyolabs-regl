@@ -149,30 +149,51 @@ const regl = createREGL({
               const speedY = Math.min(((Math.sin(time * 0.23) * 0.5 + 0.5) * 1.2 + 0.4) * morphSpeedFactor, maxSpeed);
               const speedZ = Math.min(((Math.sin(time * 0.31) * 0.5 + 0.5) * 1.0 + 0.2) * morphSpeedFactor, maxSpeed);
               
-              // Calculate rotation angles for each axis
-              const angleX = time * speedX;
-              const angleY = time * speedY;
-              const angleZ = time * speedZ;
+              // Use modulo to keep angles bounded and prevent accumulation issues
+              const angleX = (time * speedX) % (2 * Math.PI);
+              const angleY = (time * speedY) % (2 * Math.PI);
+              const angleZ = (time * speedZ) % (2 * Math.PI);
               
-              // Convert to quaternions and combine
+              // Create individual axis quaternions
               const halfX = angleX * 0.5;
               const halfY = angleY * 0.5;
               const halfZ = angleZ * 0.5;
               
-              const cosX = Math.cos(halfX);
-              const sinX = Math.sin(halfX);
-              const cosY = Math.cos(halfY);
-              const sinY = Math.sin(halfY);
-              const cosZ = Math.cos(halfZ);
-              const sinZ = Math.sin(halfZ);
+              // X-axis quaternion
+              const qx_w = Math.cos(halfX);
+              const qx_x = Math.sin(halfX);
+              const qx_y = 0;
+              const qx_z = 0;
               
-              // Combine quaternions: qZ * qY * qX
-              const qw = cosX * cosY * cosZ + sinX * sinY * sinZ;
-              const qx = sinX * cosY * cosZ - cosX * sinY * sinZ;
-              const qy = cosX * sinY * cosZ + sinX * cosY * sinZ;
-              const qz = cosX * cosY * sinZ - sinX * sinY * cosZ;
+              // Y-axis quaternion
+              const qy_w = Math.cos(halfY);
+              const qy_x = 0;
+              const qy_y = Math.sin(halfY);
+              const qy_z = 0;
               
-              return [qx, qy, qz, qw];
+              // Z-axis quaternion
+              const qz_w = Math.cos(halfZ);
+              const qz_x = 0;
+              const qz_y = 0;
+              const qz_z = Math.sin(halfZ);
+              
+              // Multiply quaternions: qZ * qY * qX (order matters)
+              // First: qY * qX
+              const temp_w = qy_w * qx_w - qy_x * qx_x - qy_y * qx_y - qy_z * qx_z;
+              const temp_x = qy_w * qx_x + qy_x * qx_w + qy_y * qx_z - qy_z * qx_y;
+              const temp_y = qy_w * qx_y - qy_x * qx_z + qy_y * qx_w + qy_z * qx_x;
+              const temp_z = qy_w * qx_z + qy_x * qx_y - qy_y * qx_x + qy_z * qx_w;
+              
+              // Then: qZ * (qY * qX)
+              const final_w = qz_w * temp_w - qz_x * temp_x - qz_y * temp_y - qz_z * temp_z;
+              const final_x = qz_w * temp_x + qz_x * temp_w + qz_y * temp_z - qz_z * temp_y;
+              const final_y = qz_w * temp_y - qz_x * temp_z + qz_y * temp_w + qz_z * temp_x;
+              const final_z = qz_w * temp_z + qz_x * temp_y - qz_y * temp_x + qz_z * temp_w;
+              
+              // Normalize quaternion to prevent drift
+              const length = Math.sqrt(final_w * final_w + final_x * final_x + final_y * final_y + final_z * final_z);
+              
+              return [final_x / length, final_y / length, final_z / length, final_w / length];
             })(),
           })
         },
