@@ -134,31 +134,6 @@ const regl = createREGL({
                 : (2 - Math.pow(2, -20 * t + 10)) / 2;
               return easeInOutExpo;
             })(),
-            // Parallel rotation animation using quaternions to avoid gimbal lock
-            rotationQuaternion: (() => {
-              // Use a simple constant rotation speed to avoid direction changes
-              // This ensures smooth, continuous rotation without reversals
-              const baseRotationSpeed = 0.3; // Constant angular velocity
-              
-              // Create rotation quaternion from axis-angle
-              // Use a single axis rotation for simplicity and stability
-              const axis = [0.3, 0.5, 0.7]; // Rotation axis
-              const axisLength = Math.sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
-              const normalizedAxis = [axis[0] / axisLength, axis[1] / axisLength, axis[2] / axisLength];
-              
-              // Simple constant rotation - no speed modulation to prevent direction issues
-              const angle = time * baseRotationSpeed;
-              const halfAngle = angle * 0.5;
-              const sinHalf = Math.sin(halfAngle);
-              const cosHalf = Math.cos(halfAngle);
-              
-              return [
-                normalizedAxis[0] * sinHalf, // x
-                normalizedAxis[1] * sinHalf, // y
-                normalizedAxis[2] * sinHalf, // z
-                cosHalf                      // w
-              ];
-            })(),
           })
         },
       )

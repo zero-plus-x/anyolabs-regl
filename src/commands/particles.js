@@ -16,30 +16,13 @@ export const createDrawParticlesCommand = (regl, data) => {
       cube_size: data.cube.SIZE,
     },
     uniforms: {
-      modelMatrix: (_, { position, rotationQuaternion }) => {
-        const modelMatrix = mat4.create()
-        
-        // Start with identity
-        mat4.identity(modelMatrix)
-        
-        // Apply rotation first (around origin)
-        const [x, y, z, w] = rotationQuaternion
-        const rotationMatrix = mat4.create()
-        mat4.fromQuat(rotationMatrix, [x, y, z, w])
-        mat4.multiply(modelMatrix, modelMatrix, rotationMatrix)
-        
-        // Then apply translation to final position
-        mat4.translate(modelMatrix, modelMatrix, position)
-        
-        return modelMatrix
-      },
+      modelMatrix: (_, { position }) => mat4.translate([], mat4.identity([]), position),
       viewMatrix: regl.context('viewMatrix'),
       projectionMatrix: regl.context('projectionMatrix'),
       uAlpha: regl.prop('uAlpha'),
       uAmount: regl.prop('uAmount'),
       uTaperFactor: regl.prop('uTaperFactor'),
       morphAmount: regl.prop('morphAmount'),
-      rotationQuaternion: regl.prop('rotationQuaternion'),
 
       'sphere.alpha.value': [1, 0],
       'sphere.alpha.bezier': [0, 0, 1, 1],
