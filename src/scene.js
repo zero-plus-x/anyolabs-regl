@@ -136,20 +136,18 @@ const regl = createREGL({
             })(),
             // Parallel rotation animation using quaternions to avoid gimbal lock
             rotationQuaternion: (() => {
-              // Get current morph amount for speed modulation
-              const t = (Math.sin(time * 0.4) * 0.5 + 0.5);
-              const morphAmount = t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
-              
-              // Calculate speed modifier based on morph state (ensure minimum speed to prevent direction reversal)
-              const morphSpeedFactor = Math.max(0.2, 1 - Math.pow(Math.sin(morphAmount * Math.PI), 2) * 0.6);
+              // Use a simple constant rotation speed to avoid direction changes
+              // This ensures smooth, continuous rotation without reversals
+              const baseRotationSpeed = 0.3; // Constant angular velocity
               
               // Create rotation quaternion from axis-angle
               // Use a single axis rotation for simplicity and stability
-              const axis = [0.3, 0.5, 0.7]; // Normalized rotation axis
+              const axis = [0.3, 0.5, 0.7]; // Rotation axis
               const axisLength = Math.sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
               const normalizedAxis = [axis[0] / axisLength, axis[1] / axisLength, axis[2] / axisLength];
               
-              const angle = time * 0.4 * morphSpeedFactor; // Single rotation angle with consistent direction
+              // Simple constant rotation - no speed modulation to prevent direction issues
+              const angle = time * baseRotationSpeed;
               const halfAngle = angle * 0.5;
               const sinHalf = Math.sin(halfAngle);
               const cosHalf = Math.cos(halfAngle);
