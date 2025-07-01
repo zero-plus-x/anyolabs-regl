@@ -134,7 +134,27 @@ const regl = createREGL({
                 : (2 - Math.pow(2, -20 * t + 10)) / 2;
               return easeInOutExpo;
             })(),
-            rotationTime: time * 0.3, // Simple constant rotation to avoid direction reversals
+            rotationTime: (() => {
+              // Get current morph amount
+              const t = (Math.sin(time * 0.2) * 0.5 + 0.5);
+              const easeInOutExpo = t === 0 
+                ? 0 
+                : t === 1 
+                ? 1 
+                : t < 0.5 
+                ? Math.pow(2, 20 * t - 10) / 2
+                : (2 - Math.pow(2, -20 * t + 10)) / 2;
+              
+              // Calculate rotation speed multiplier based on morph amount
+              // Peak at 0 and 1, zero at 0.2, 0.5, 0.8
+              // Use a sine wave that creates this pattern
+              const rotationMultiplier = Math.abs(Math.sin(easeInOutExpo * Math.PI * 2.5));
+              
+              // Oscillating rotation using sine function
+              const baseRotation = Math.sin(time * 0.4) * 0.5; // Oscillates between -0.5 and 0.5
+              
+              return baseRotation * rotationMultiplier;
+            })(),
           })
         },
       )
