@@ -13,6 +13,12 @@ let lastTime = 0
 let targetTaperFactor = 1.
 let currentTaperFactor = 1.
 
+// Morphing state control
+let morphDirection = 1 // 1 = toward cube, -1 = toward sphere
+let morphSpeed = 0.3
+let morphAmount = 0.5
+let lastMorphTime = 0
+
 const updateMousePosition = (event) => {
   const rect = canvas.getBoundingClientRect()
   const x = event.clientX - rect.left
@@ -122,37 +128,28 @@ const regl = createREGL({
             color1: [141, 0, 203].map(x => x / 255),
             uTaperFactor: currentTaperFactor,
             morphAmount: (() => {
-              // Create a dramatic easeInOutCubic morphing with continuous animation
-              const rawSine = Math.sin(time * 0.2);
-              const t = (rawSine * 0.5 + 0.5); // Base oscillation - 2x slower
+              // Calculate delta time for this frame
+              const deltaTime = lastMorphTime === 0 ? 0.016 : time - lastMorphTime;
+              lastMorphTime = time;
               
-              // Determine direction: positive sine = sphere to cube, negative sine = cube to sphere
-              const isSphereToCube = rawSine >= 0;
+              // Update morph amount based on direction and speed
+              morphAmount += morphDirection * morphSpeed * deltaTime;
               
-              let morphAmount;
-              if (isSphereToCube) {
-                // Sphere to cube: use easeInOutCubic
-                const easeInOutCubic = t < 0.5 
-                  ? 4 * t * t * t 
-                  : 1 - Math.pow(-2 * t + 2, 3) / 2;
-                morphAmount = easeInOutCubic;
-              } else {
-                // Cube to sphere: apply easeInOutCubic to the inverted t value
-                const invertedT = 1 - t;
-                const easeInOutCubic = invertedT < 0.5 
-                  ? 4 * invertedT * invertedT * invertedT 
-                  : 1 - Math.pow(-2 * invertedT + 2, 3) / 2;
-                morphAmount = 1 - easeInOutCubic;
+              // Check for reversal conditions
+              if (morphAmount >= 0.95) {
+                morphAmount = 0.95;
+                morphDirection = -1; // Start moving toward sphere
+              } else if (morphAmount <= 0.05) {
+                morphAmount = 0.05;
+                morphDirection = 1; // Start moving toward cube
               }
               
-              // Inverse morph direction when very close to extremes
-              if (morphAmount < 0.1) {
-                morphAmount = 0.1;
-              } else if (morphAmount > 0.9) {
-                morphAmount = 0.9;
-              }
+              // Apply easing to the movement for smoother transitions
+              const easedProgress = morphAmount < 0.5 
+                ? 2 * morphAmount * morphAmount 
+                : 1 - Math.pow(-2 * morphAmount + 2, 2) / 2;
               
-              return morphAmount;
+              return easedProgress;
             })(),
           })
         },
