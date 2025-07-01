@@ -123,16 +123,33 @@ const regl = createREGL({
             uTaperFactor: currentTaperFactor,
             morphAmount: (() => {
               // Create a dramatic easeInOutExpo morphing with continuous animation
-              const t = (Math.sin(time * 0.2) * 0.5 + 0.5); // Base oscillation - 2x slower
-              // Apply easeInOutExpo for very dramatic transitions
-              const easeInOutExpo = t === 0 
-                ? 0 
-                : t === 1 
-                ? 1 
-                : t < 0.5 
-                ? Math.pow(2, 20 * t - 10) / 2
-                : (2 - Math.pow(2, -20 * t + 10)) / 2;
-              return easeInOutExpo;
+              const rawSine = Math.sin(time * 0.2);
+              const t = (rawSine * 0.5 + 0.5); // Base oscillation - 2x slower
+              
+              // Determine direction: positive sine = sphere to cube, negative sine = cube to sphere
+              const isSphereToCube = rawSine >= 0;
+              
+              if (isSphereToCube) {
+                // Sphere to cube: use easeInOutExpo
+                const easeInOutExpo = t === 0 
+                  ? 0 
+                  : t === 1 
+                  ? 1 
+                  : t < 0.5 
+                  ? Math.pow(2, 20 * t - 10) / 2
+                  : (2 - Math.pow(2, -20 * t + 10)) / 2;
+                return easeInOutExpo;
+              } else {
+                // Cube to sphere: use easeOutInExpo (inverted easeInOutExpo)
+                const easeOutInExpo = t === 0 
+                  ? 0 
+                  : t === 1 
+                  ? 1 
+                  : t < 0.5 
+                  ? (2 - Math.pow(2, -20 * t + 10)) / 2
+                  : Math.pow(2, 20 * t - 10) / 2;
+                return easeOutInExpo;
+              }
             })(),
           })
         },
