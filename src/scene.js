@@ -58,7 +58,7 @@ const calculateMinMax = (positions) => {
   }
 }
 // Set positions and calculate bounds for cube
-const cubeData = generateCubeSurface(cube.COUNT, 0.08, true)
+const cubeData = generateCubeSurface(cube.COUNT, 0.18, true)
 cube.POS = cubeData.positions
 cube.COL = cubeData.colors
 cube.SIZE = generateSizeByPosition(cube.POS, 5)
