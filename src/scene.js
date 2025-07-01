@@ -122,13 +122,17 @@ const regl = createREGL({
             color1: [141, 0, 203].map(x => x / 255),
             uTaperFactor: currentTaperFactor,
             morphAmount: (() => {
-              // Create a more pronounced easeInOut morphing with continuous animation
-              const t = (Math.sin(time * 0.4) * 0.5 + 0.5); // Slightly faster base oscillation
-              // Apply easeInOut quadratic for smoother but still pronounced transitions
-              const easeInOutQuad = t < 0.5 
-                ? 2 * t * t 
-                : 1 - Math.pow(-2 * t + 2, 2) / 2;
-              return easeInOutQuad;
+              // Create a dramatic easeInOutExpo morphing with continuous animation
+              const t = (Math.sin(time * 0.4) * 0.5 + 0.5); // Base oscillation
+              // Apply easeInOutExpo for very dramatic transitions
+              const easeInOutExpo = t === 0 
+                ? 0 
+                : t === 1 
+                ? 1 
+                : t < 0.5 
+                ? Math.pow(2, 20 * t - 10) / 2
+                : (2 - Math.pow(2, -20 * t + 10)) / 2;
+              return easeInOutExpo;
             })(),
           })
         },
