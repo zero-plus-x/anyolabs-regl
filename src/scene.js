@@ -146,10 +146,10 @@ const regl = createREGL({
               }
               
               // Inverse morph direction when very close to extremes
-              if (morphAmount < 0.001) {
-                morphAmount = 0.001;
-              } else if (morphAmount > 0.999) {
-                morphAmount = 0.999;
+              if (morphAmount < 0.1) {
+                morphAmount = 0.1;
+              } else if (morphAmount > 0.9) {
+                morphAmount = 0.9;
               }
               
               return morphAmount;
