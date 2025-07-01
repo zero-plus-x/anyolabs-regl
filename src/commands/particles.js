@@ -23,7 +23,6 @@ export const createDrawParticlesCommand = (regl, data) => {
       uAmount: regl.prop('uAmount'),
       uTaperFactor: regl.prop('uTaperFactor'),
       morphAmount: regl.prop('morphAmount'),
-      rotationTime: regl.prop('rotationTime'),
 
       'sphere.alpha.value': [1, 0],
       'sphere.alpha.bezier': [0, 0, 1, 1],

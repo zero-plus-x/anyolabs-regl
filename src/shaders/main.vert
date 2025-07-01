@@ -10,7 +10,6 @@ uniform float uAmount;
 
 uniform float uTaperFactor;
 uniform float morphAmount;
-uniform float rotationTime;
 
 uniform float pointSizeMin;
 uniform float pointSizeMax;
@@ -184,19 +183,6 @@ void main() {
   vec4 finalPosition = position;
   // finalPosition += finalNoiseConstant;
   finalPosition.z += amount * (brownian1 * 0.15 - 0.15);
-  
-  // Apply rotation to the final position around the object's center
-  float cosY = cos(rotationTime);
-  float sinY = sin(rotationTime);
-  
-  // Rotate around Y axis
-  vec3 rotatedPos = finalPosition.xyz;
-  float tempX = rotatedPos.x * cosY + rotatedPos.z * sinY;
-  float tempZ = -rotatedPos.x * sinY + rotatedPos.z * cosY;
-  rotatedPos.x = tempX;
-  rotatedPos.z = tempZ;
-  
-  finalPosition.xyz = rotatedPos;
   
   mat4 modelViewMatrix = modelMatrix * viewMatrix;
   position = projectionMatrix * modelViewMatrix * finalPosition;
