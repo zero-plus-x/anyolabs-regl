@@ -134,6 +134,7 @@ const regl = createREGL({
                 : (2 - Math.pow(2, -20 * t + 10)) / 2;
               return easeInOutExpo;
             })(),
+            rotationTime: time * 0.3, // Simple rotation time for vertex shader
           })
         },
       )
