@@ -136,16 +136,53 @@ const regl = createREGL({
             })(),
             // Parallel rotation animation with varying speeds for each axis
             rotationX: (() => {
-              const speed = (Math.sin(time * 0.15) * 0.5 + 0.5) * 2 + 0.5; // Speed varies between 0.5 and 2.5
-              return time * speed;
+              // Get current morph amount for speed modulation
+              const t = (Math.sin(time * 0.4) * 0.5 + 0.5);
+              const morphAmount = t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
+              
+              // Calculate speed modifier based on morph state (slower at 0, 0.5, 1)
+              const morphSpeedFactor = 1 - Math.pow(Math.sin(morphAmount * Math.PI), 2) * 0.7; // Slow down at extremes and middle
+              
+              // Base fluctuating speed
+              const baseSpeed = (Math.sin(time * 0.15) * 0.5 + 0.5) * 1.5 + 0.3; // Speed varies between 0.3 and 1.8
+              
+              // Apply morph-based speed modulation
+              const finalSpeed = baseSpeed * morphSpeedFactor;
+              
+              // Accumulate rotation over time instead of multiplying by time directly
+              return time * finalSpeed;
             })(),
             rotationY: (() => {
-              const speed = (Math.sin(time * 0.23) * 0.5 + 0.5) * 1.8 + 0.3; // Speed varies between 0.3 and 2.1
-              return time * speed;
+              // Get current morph amount for speed modulation
+              const t = (Math.sin(time * 0.4) * 0.5 + 0.5);
+              const morphAmount = t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
+              
+              // Calculate speed modifier based on morph state
+              const morphSpeedFactor = 1 - Math.pow(Math.sin(morphAmount * Math.PI), 2) * 0.6;
+              
+              // Base fluctuating speed
+              const baseSpeed = (Math.sin(time * 0.23) * 0.5 + 0.5) * 1.2 + 0.4; // Speed varies between 0.4 and 1.6
+              
+              // Apply morph-based speed modulation
+              const finalSpeed = baseSpeed * morphSpeedFactor;
+              
+              return time * finalSpeed;
             })(),
             rotationZ: (() => {
-              const speed = (Math.sin(time * 0.31) * 0.5 + 0.5) * 1.5 + 0.4; // Speed varies between 0.4 and 1.9
-              return time * speed;
+              // Get current morph amount for speed modulation
+              const t = (Math.sin(time * 0.4) * 0.5 + 0.5);
+              const morphAmount = t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
+              
+              // Calculate speed modifier based on morph state
+              const morphSpeedFactor = 1 - Math.pow(Math.sin(morphAmount * Math.PI), 2) * 0.8;
+              
+              // Base fluctuating speed
+              const baseSpeed = (Math.sin(time * 0.31) * 0.5 + 0.5) * 1.0 + 0.2; // Speed varies between 0.2 and 1.2
+              
+              // Apply morph-based speed modulation
+              const finalSpeed = baseSpeed * morphSpeedFactor;
+              
+              return time * finalSpeed;
             })(),
           })
         },
