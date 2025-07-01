@@ -463,7 +463,7 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
       // Generate white RGBA color for random points
       const distance = Math.sqrt(x * x + y * y + z * z)
       const alpha = distance // Distance from center (0 at center, 1 at surface)
-      
+
       validPoints.push([x, y, z, 1.0, 1.0, 1.0, alpha])
     }
     
