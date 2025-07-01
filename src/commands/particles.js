@@ -22,14 +22,14 @@ export const createDrawParticlesCommand = (regl, data) => {
         // Start with identity
         mat4.identity(modelMatrix)
         
-        // Apply translation first to position the object
-        mat4.translate(modelMatrix, modelMatrix, position)
-        
-        // Then apply rotation around the object's center
+        // Apply rotation first (around origin)
         const [x, y, z, w] = rotationQuaternion
         const rotationMatrix = mat4.create()
         mat4.fromQuat(rotationMatrix, [x, y, z, w])
         mat4.multiply(modelMatrix, modelMatrix, rotationMatrix)
+        
+        // Then apply translation to final position
+        mat4.translate(modelMatrix, modelMatrix, position)
         
         return modelMatrix
       },
