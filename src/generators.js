@@ -668,37 +668,23 @@ export const generateCubeSurface = (count, jitterAmount = 0.05, edgeStickiness =
     positions[i * 3 + 1] = y
     positions[i * 3 + 2] = z
     
-    // Generate RGBA color based on face and position
-    const distance = Math.sqrt(x * x + y * y + z * z)
-    const faceHue = clampedFaceIndex * 60 // Different hue per face
-    const positionHue = (Math.atan2(v, u) * 180 / Math.PI + 180) % 360
-    const hue = (faceHue + positionHue * 0.3) % 360
-    const saturation = 0.5 + distance * 0.3
-    const value = 0.6 + Math.random() * 0.4
-    const alpha = 0.7 + Math.random() * 0.3
+    // Generate white color with alpha based on distance from edges
+    // Calculate distance from center of face (0,0) in UV coordinates
+    const distanceFromCenter = Math.sqrt(u * u + v * v)
     
-    // Convert HSV to RGB
-    const h = hue / 360
-    const s = saturation
-    const val = value
-    const a = alpha
+    // Calculate distance to nearest edge
+    const distanceToEdgeU = Math.min(0.5 + u, 0.5 - u) // distance to left/right edge
+    const distanceToEdgeV = Math.min(0.5 + v, 0.5 - v) // distance to top/bottom edge
+    const distanceToNearestEdge = Math.min(distanceToEdgeU, distanceToEdgeV)
     
-    const c = val * s
-    const xComp = c * (1 - Math.abs(((h * 6) % 2) - 1))
-    const m = val - c
+    // Map distance to alpha: edges (distance=0) -> alpha=1.0, center (distance=0.5) -> alpha=0.5
+    const alpha = 0.5 + (distanceToNearestEdge / 0.5) * 0.5
     
-    let r, g, b
-    if (h < 1/6) { r = c; g = xComp; b = 0 }
-    else if (h < 2/6) { r = xComp; g = c; b = 0 }
-    else if (h < 3/6) { r = 0; g = c; b = xComp }
-    else if (h < 4/6) { r = 0; g = xComp; b = c }
-    else if (h < 5/6) { r = xComp; g = 0; b = c }
-    else { r = c; g = 0; b = xComp }
-    
-    colors[i * 4] = r + m
-    colors[i * 4 + 1] = g + m
-    colors[i * 4 + 2] = b + m
-    colors[i * 4 + 3] = a
+    // Set white color (RGB = 1, 1, 1)
+    colors[i * 4] = 1.0     // R
+    colors[i * 4 + 1] = 1.0 // G
+    colors[i * 4 + 2] = 1.0 // B
+    colors[i * 4 + 3] = alpha
   }
   
   return { positions, colors }
