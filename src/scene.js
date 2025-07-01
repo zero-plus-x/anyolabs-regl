@@ -147,13 +147,18 @@ const regl = createREGL({
               
               // Calculate rotation speed multiplier based on morph amount
               // Peak at 0 and 1, zero at 0.2, 0.5, 0.8
-              // Use a sine wave that creates this pattern
-              const rotationMultiplier = Math.abs(Math.sin(easeInOutExpo * Math.PI * 2.5));
+              const morphFactor = Math.abs(Math.sin(easeInOutExpo * Math.PI * 2.5));
               
-              // Oscillating rotation using sine function (always positive)
-              const baseRotation = Math.abs(Math.sin(time * 0.4)) * 0.5; // Oscillates between 0 and 0.5
+              // Calculate speed using sine offset formula
+              const baseSpeed = 0.1;
+              const minSpeed = 0.05;
+              const maxSpeed = 0.3;
+              const speed = baseSpeed * ((Math.sin(time * 0.4) + 1) / 2) * (maxSpeed - minSpeed) + minSpeed;
               
-              return baseRotation * rotationMultiplier;
+              // Multiply speed by morph factor
+              const finalSpeed = speed * morphFactor;
+              
+              return time * finalSpeed;
             })(),
           })
         },
