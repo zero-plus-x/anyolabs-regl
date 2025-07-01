@@ -677,8 +677,8 @@ export const generateCubeSurface = (count, jitterAmount = 0.05, edgeStickiness =
     const distanceToEdgeV = Math.min(0.5 + v, 0.5 - v) // distance to top/bottom edge
     const distanceToNearestEdge = Math.min(distanceToEdgeU, distanceToEdgeV)
     
-    // Map distance to alpha: edges (distance=0) -> alpha=1.0, center (distance=0.5) -> alpha=0.5
-    const alpha = 0.5 + (distanceToNearestEdge / 0.5) * 0.5
+    // Map distance to alpha: edges (distance=0) -> alpha=1.0, center (distance=0.5) -> alpha=0.0
+    const alpha = (distanceToNearestEdge / 0.5) * 1.0
     
     // Set white color (RGB = 1, 1, 1)
     colors[i * 4] = 1.0     // R
