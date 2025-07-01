@@ -309,6 +309,32 @@ export const shuffleMultipleArrays = (arrays, componentsPerElement, seededRandom
   return shuffledArrays
 }
 
+// Generate RGBA colors based on distance from center (same algorithm as sphere generator)
+export const generateColorsByDistToCenter = (positions) => {
+  const count = positions.length / 3
+  const colors = new Float32Array(count * 4)
+  
+  for (let i = 0; i < count; i++) {
+    const x = positions[i * 3]
+    const y = positions[i * 3 + 1]
+    const z = positions[i * 3 + 2]
+    
+    // Calculate distance from center
+    const distance = Math.sqrt(x * x + y * y + z * z)
+    
+    // Set white color with distance-based alpha
+    // Distance from center (0 at center, approaches 1 at surface)
+    const alpha = distance
+    
+    colors[i * 4] = 1.0     // R - white
+    colors[i * 4 + 1] = 1.0 // G - white  
+    colors[i * 4 + 2] = 1.0 // B - white
+    colors[i * 4 + 3] = alpha // A - distance-based
+  }
+  
+  return colors
+}
+
 // ... existing code ...
 
 export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, centerBias = 0.3) => {
