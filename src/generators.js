@@ -412,15 +412,12 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
               }
             }
             
-            // Generate RGBA color based on position
+            // Generate white RGBA color with alpha based on distance from center
             const distance = Math.sqrt(finalX * finalX + finalY * finalY + finalZ * finalZ)
-            const hue = (distance * 360 + Math.atan2(finalZ, finalX) * 180 / Math.PI) % 360
-            const saturation = 0.6 + distance * 0.4
-            const value = 0.7 + Math.random() * 0.3
-            const alpha = 0.8 + Math.random() * 0.2
+            const alpha = distance // Distance from center (0 at center, 1 at surface)
             
-            // Store the valid point with color
-            validPoints.push([finalX, finalY, finalZ, hue, saturation, value, alpha])
+            // Store the valid point with white color and distance-based alpha
+            validPoints.push([finalX, finalY, finalZ, 1.0, 1.0, 1.0, alpha])
           }
         }
       }
@@ -463,14 +460,11 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
         }
       }
       
-      // Generate RGBA color for random points
+      // Generate white RGBA color for random points
       const distance = Math.sqrt(x * x + y * y + z * z)
-      const hue = (distance * 360 + Math.atan2(z, x) * 180 / Math.PI) % 360
-      const saturation = 0.6 + distance * 0.4
-      const value = 0.7 + Math.random() * 0.3
-      const alpha = 0.8 + Math.random() * 0.2
+      const alpha = distance // Distance from center (0 at center, 1 at surface)
       
-      validPoints.push([x, y, z, hue, saturation, value, alpha])
+      validPoints.push([x, y, z, 1.0, 1.0, 1.0, alpha])
     }
     
     // Take exactly count points and fill the positions and colors arrays
@@ -480,27 +474,15 @@ export const generateCenterWeightedVolumeSphere = (count, jitterAmount = 0.05, c
       positions[i * 3 + 1] = point[1]
       positions[i * 3 + 2] = point[2]
       
-      // Convert HSV to RGB
-      const h = point[3] / 360
-      const s = point[4]
-      const v = point[5]
-      const a = point[6]
+      // Use white RGB values directly (no HSV conversion needed)
+      const r = point[3] // 1.0
+      const g = point[4] // 1.0
+      const b = point[5] // 1.0
+      const a = point[6] // distance-based alpha
       
-      const c = v * s
-      const x = c * (1 - Math.abs(((h * 6) % 2) - 1))
-      const m = v - c
-      
-      let r, g, b
-      if (h < 1/6) { r = c; g = x; b = 0 }
-      else if (h < 2/6) { r = x; g = c; b = 0 }
-      else if (h < 3/6) { r = 0; g = c; b = x }
-      else if (h < 4/6) { r = 0; g = x; b = c }
-      else if (h < 5/6) { r = x; g = 0; b = c }
-      else { r = c; g = 0; b = x }
-      
-      colors[i * 4] = r + m
-      colors[i * 4 + 1] = g + m
-      colors[i * 4 + 2] = b + m
+      colors[i * 4] = r
+      colors[i * 4 + 1] = g
+      colors[i * 4 + 2] = b
       colors[i * 4 + 3] = a
     }
     
