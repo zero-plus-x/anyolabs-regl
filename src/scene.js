@@ -122,37 +122,37 @@ const regl = createREGL({
             color1: [141, 0, 203].map(x => x / 255),
             uTaperFactor: currentTaperFactor,
             morphAmount: (() => {
-              // Create a dramatic easeInOutExpo morphing with continuous animation
+              // Create a dramatic easeInOutCubic morphing with continuous animation
               const rawSine = Math.sin(time * 0.2);
               const t = (rawSine * 0.5 + 0.5); // Base oscillation - 2x slower
               
               // Determine direction: positive sine = sphere to cube, negative sine = cube to sphere
               const isSphereToCube = rawSine >= 0;
               
+              let morphAmount;
               if (isSphereToCube) {
-                // Sphere to cube: use easeInOutExpo
-                const easeInOutExpo = t === 0 
-                  ? 0 
-                  : t === 1 
-                  ? 1 
-                  : t < 0.5 
-                  ? Math.pow(2, 20 * t - 10) / 2
-                  : (2 - Math.pow(2, -20 * t + 10)) / 2;
-                  console.log(easeInOutExpo)
-                return easeInOutExpo;
+                // Sphere to cube: use easeInOutCubic
+                const easeInOutCubic = t < 0.5 
+                  ? 4 * t * t * t 
+                  : 1 - Math.pow(-2 * t + 2, 3) / 2;
+                morphAmount = easeInOutCubic;
               } else {
-                // Cube to sphere: apply easeInOutExpo to the inverted t value
+                // Cube to sphere: apply easeInOutCubic to the inverted t value
                 const invertedT = 1 - t;
-                const easeInOutExpo = invertedT === 0 
-                  ? 0 
-                  : invertedT === 1 
-                  ? 1 
-                  : invertedT < 0.5 
-                  ? Math.pow(2, 20 * invertedT - 10) / 2
-                  : (2 - Math.pow(2, -20 * invertedT + 10)) / 2;
-                  console.log(1 - easeInOutExpo)
-                return 1 - easeInOutExpo;
+                const easeInOutCubic = invertedT < 0.5 
+                  ? 4 * invertedT * invertedT * invertedT 
+                  : 1 - Math.pow(-2 * invertedT + 2, 3) / 2;
+                morphAmount = 1 - easeInOutCubic;
               }
+              
+              // Inverse morph direction when very close to extremes
+              if (morphAmount < 0.001) {
+                morphAmount = 0.001;
+              } else if (morphAmount > 0.999) {
+                morphAmount = 0.999;
+              }
+              
+              return morphAmount;
             })(),
           })
         },
