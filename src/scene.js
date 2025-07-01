@@ -123,7 +123,7 @@ const regl = createREGL({
             uTaperFactor: currentTaperFactor,
             morphAmount: (() => {
               // Create a dramatic easeInOutExpo morphing with continuous animation
-              const t = (Math.sin(time * 0.4) * 0.5 + 0.5); // Base oscillation
+              const t = (Math.sin(time * 0.2) * 0.5 + 0.5); // Base oscillation - 2x slower
               // Apply easeInOutExpo for very dramatic transitions
               const easeInOutExpo = t === 0 
                 ? 0 
