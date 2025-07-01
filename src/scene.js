@@ -140,19 +140,8 @@ const regl = createREGL({
               const t = (Math.sin(time * 0.4) * 0.5 + 0.5);
               const morphAmount = t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
               
-              // Calculate speed modifier based on morph state
-              const morphSpeedFactor = 1 - Math.pow(Math.sin(morphAmount * Math.PI), 2) * 0.7;
-              
-              // Create three independent rotation axes with varying speeds (capped at max)
-              const maxSpeed = 0.8; // Maximum rotation speed limit
-              const baseSpeedX = Math.min(((Math.sin(time * 0.15) * 0.5 + 0.5) * 1.5 + 0.3) * morphSpeedFactor, maxSpeed);
-              const baseSpeedY = Math.min(((Math.sin(time * 0.23) * 0.5 + 0.5) * 1.2 + 0.4) * morphSpeedFactor, maxSpeed);
-              const baseSpeedZ = Math.min(((Math.sin(time * 0.31) * 0.5 + 0.5) * 1.0 + 0.2) * morphSpeedFactor, maxSpeed);
-              
-              // Calculate smooth rotation angles using simple constant rotation
-              const angleX = time * 0.3; // Constant rotation speed
-              const angleY = time * 0.5; // Different constant speed
-              const angleZ = time * 0.7; // Different constant speed
+              // Calculate speed modifier based on morph state (ensure minimum speed to prevent direction reversal)
+              const morphSpeedFactor = Math.max(0.2, 1 - Math.pow(Math.sin(morphAmount * Math.PI), 2) * 0.6);
               
               // Create rotation quaternion from axis-angle
               // Use a single axis rotation for simplicity and stability
@@ -160,7 +149,7 @@ const regl = createREGL({
               const axisLength = Math.sqrt(axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]);
               const normalizedAxis = [axis[0] / axisLength, axis[1] / axisLength, axis[2] / axisLength];
               
-              const angle = time * 0.4 * morphSpeedFactor; // Single rotation angle
+              const angle = time * 0.4 * morphSpeedFactor; // Single rotation angle with consistent direction
               const halfAngle = angle * 0.5;
               const sinHalf = Math.sin(halfAngle);
               const cosHalf = Math.cos(halfAngle);
