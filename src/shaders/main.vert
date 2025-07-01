@@ -185,7 +185,6 @@ void main() {
   finalPosition.z += amount * (brownian1 * 0.15 - 0.15);
   mat4 modelViewMatrix = modelMatrix * viewMatrix;
 
-  vec3 distortedPos = applyTaper(finalPosition.xyz, -3.0, 3.0);
   finalPosition.xyz = finalPosition.xyz;
 
   position = projectionMatrix * modelViewMatrix * finalPosition;
@@ -193,23 +192,22 @@ void main() {
   gl_Position = position;
 
   // Morph point size based on both objects
-  float spherePointSize = sphere_size + length(snoise3(sphere_position * 3.)) * 2.;
-  float cubePointSize = cube_size + length(snoise3(cube_position * 3.)) * 2.;
+  float spherePointSize = sphere_size * 4. + 1.2;
+  float cubePointSize = cube_size * 4. + 1.2;
   float morphedPointSize = mix(spherePointSize, cubePointSize, morphAmount);
   float pointSize = clamp(morphedPointSize, 1., 6.);
   gl_PointSize = pointSize;
-
-  float alpha1 = (brownian1 - 0.4) + inversedZDepth;
-
-  float alpha2 = brownian1;
-  // logosAlpha += alphaNoise1;
-  float pointAlpha = clamp(alpha2 * 10.0, .75, 1.);
-  // pointAlpha = alpha2 * uAlpha;
   
   // Morph colors between sphere and cube
-  vec4 sphereColor = clamp(sphere_color, 0., 1.);
-  vec4 cubeColor = clamp(cube_color, 0., 1.);
+  vec4 sphereColor = sphere_color;
+  sphereColor.a *= sphereColor.a * sphereColor.a;
+  sphereColor.a = clamp(sphereColor.a, 0., 1.);
+  sphereColor.a = 1. - sphereColor.a;
+  vec4 cubeColor = cube_color;
+  cubeColor.a += 0.2;
+  cubeColor.a = clamp(cubeColor.a, 0.2, 1.);
   vec4 morphedColor = mix(sphereColor, cubeColor, morphAmount);
+  morphedColor.a = clamp(morphedColor.a / 2. + brownian1 / 2., 0., 1.);
 
-  vColor = vec4(morphedColor.rgb, morphedColor.a * pointAlpha);
+  vColor = morphedColor;
 }

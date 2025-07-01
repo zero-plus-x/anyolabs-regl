@@ -2,7 +2,7 @@ import createREGL from 'regl'
 import { resizeRegl, noise3D } from './utils'
 import { createDrawParticlesCommand } from './commands/particles'
 import { createSetupCamera } from './commands/camera'
-import { generateVolumeSphere, generateCubeSurface, proximityGenerator, shuffleComponents, shuffleMultipleArrays } from './generators'
+import { generateVolumeSphere, generateCubeSurface, proximityGenerator, shuffleComponents, shuffleMultipleArrays, generateColorsByDistToCenter, generateSizeByPosition } from './generators'
 
 const canvas = document.getElementById('heroImage')
 
@@ -61,19 +61,23 @@ const calculateMinMax = (positions) => {
 const cubeData = generateCubeSurface(cube.COUNT, 0.08, true)
 cube.POS = cubeData.positions
 cube.COL = cubeData.colors
+cube.SIZE = generateSizeByPosition(cube.POS, 5)
 
 const cubeBounds = calculateMinMax(cube.POS)
 cube.POS_MIN = cubeBounds.min
 cube.POS_MAX = cubeBounds.max
 
 // Set positions and calculate bounds for sphere
-const sphereData = generateVolumeSphere(cube.COUNT, 0.1)
-sphere.POS = proximityGenerator(cube.POS, sphereData.positions, false, 100)
-sphere.COL = shuffleComponents(cube.COL, 4);
+const sphereData = generateVolumeSphere(cube.COUNT, 0.05)
+sphere.POS = proximityGenerator(cube.POS, sphereData.positions, false, 10)
+sphere.COL = generateColorsByDistToCenter(sphere.POS)
+sphere.SIZE = generateSizeByPosition(sphere.POS, 5)
 
-const sphere1Bounds = calculateMinMax(sphere.POS)
-sphere.POS_MIN = sphere1Bounds.min
-sphere.POS_MAX = sphere1Bounds.max
+const sphereBounds = calculateMinMax(sphere.POS)
+sphere.POS_MIN = sphereBounds.min
+sphere.POS_MAX = sphereBounds.max
+
+console.log(sphereBounds)
 
 
 console.log(sphere, cube)
