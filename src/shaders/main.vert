@@ -10,6 +10,9 @@ uniform float uAmount;
 
 uniform float uTaperFactor;
 uniform float morphAmount;
+uniform float rotationX;
+uniform float rotationY;
+uniform float rotationZ;
 
 uniform float pointSizeMin;
 uniform float pointSizeMax;
@@ -183,10 +186,37 @@ void main() {
   vec4 finalPosition = position;
   // finalPosition += finalNoiseConstant;
   finalPosition.z += amount * (brownian1 * 0.15 - 0.15);
+  
+  // Apply rotation transformations
+  float cosX = cos(rotationX);
+  float sinX = sin(rotationX);
+  float cosY = cos(rotationY);
+  float sinY = sin(rotationY);
+  float cosZ = cos(rotationZ);
+  float sinZ = sin(rotationZ);
+  
+  // Rotation around X axis
+  vec3 rotatedPos = finalPosition.xyz;
+  float tempY = rotatedPos.y * cosX - rotatedPos.z * sinX;
+  float tempZ = rotatedPos.y * sinX + rotatedPos.z * cosX;
+  rotatedPos.y = tempY;
+  rotatedPos.z = tempZ;
+  
+  // Rotation around Y axis
+  float tempX = rotatedPos.x * cosY + rotatedPos.z * sinY;
+  tempZ = -rotatedPos.x * sinY + rotatedPos.z * cosY;
+  rotatedPos.x = tempX;
+  rotatedPos.z = tempZ;
+  
+  // Rotation around Z axis
+  tempX = rotatedPos.x * cosZ - rotatedPos.y * sinZ;
+  tempY = rotatedPos.x * sinZ + rotatedPos.y * cosZ;
+  rotatedPos.x = tempX;
+  rotatedPos.y = tempY;
+  
+  finalPosition.xyz = rotatedPos;
+  
   mat4 modelViewMatrix = modelMatrix * viewMatrix;
-
-  finalPosition.xyz = finalPosition.xyz;
-
   position = projectionMatrix * modelViewMatrix * finalPosition;
   
   gl_Position = position;

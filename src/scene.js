@@ -134,6 +134,19 @@ const regl = createREGL({
                 : (2 - Math.pow(2, -20 * t + 10)) / 2;
               return easeInOutExpo;
             })(),
+            // Parallel rotation animation with varying speeds for each axis
+            rotationX: (() => {
+              const speed = (Math.sin(time * 0.15) * 0.5 + 0.5) * 2 + 0.5; // Speed varies between 0.5 and 2.5
+              return time * speed;
+            })(),
+            rotationY: (() => {
+              const speed = (Math.sin(time * 0.23) * 0.5 + 0.5) * 1.8 + 0.3; // Speed varies between 0.3 and 2.1
+              return time * speed;
+            })(),
+            rotationZ: (() => {
+              const speed = (Math.sin(time * 0.31) * 0.5 + 0.5) * 1.5 + 0.4; // Speed varies between 0.4 and 1.9
+              return time * speed;
+            })(),
           })
         },
       )
