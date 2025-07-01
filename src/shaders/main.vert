@@ -10,9 +10,7 @@ uniform float uAmount;
 
 uniform float uTaperFactor;
 uniform float morphAmount;
-uniform float rotationX;
-uniform float rotationY;
-uniform float rotationZ;
+uniform vec4 rotationQuaternion;
 
 uniform float pointSizeMin;
 uniform float pointSizeMax;
@@ -187,32 +185,16 @@ void main() {
   // finalPosition += finalNoiseConstant;
   finalPosition.z += amount * (brownian1 * 0.15 - 0.15);
   
-  // Apply rotation transformations
-  float cosX = cos(rotationX);
-  float sinX = sin(rotationX);
-  float cosY = cos(rotationY);
-  float sinY = sin(rotationY);
-  float cosZ = cos(rotationZ);
-  float sinZ = sin(rotationZ);
-  
-  // Rotation around X axis
+  // Apply quaternion rotation to avoid gimbal lock
+  vec4 q = rotationQuaternion;
   vec3 rotatedPos = finalPosition.xyz;
-  float tempY = rotatedPos.y * cosX - rotatedPos.z * sinX;
-  float tempZ = rotatedPos.y * sinX + rotatedPos.z * cosX;
-  rotatedPos.y = tempY;
-  rotatedPos.z = tempZ;
   
-  // Rotation around Y axis
-  float tempX = rotatedPos.x * cosY + rotatedPos.z * sinY;
-  tempZ = -rotatedPos.x * sinY + rotatedPos.z * cosY;
-  rotatedPos.x = tempX;
-  rotatedPos.z = tempZ;
-  
-  // Rotation around Z axis
-  tempX = rotatedPos.x * cosZ - rotatedPos.y * sinZ;
-  tempY = rotatedPos.x * sinZ + rotatedPos.y * cosZ;
-  rotatedPos.x = tempX;
-  rotatedPos.y = tempY;
+  // Quaternion rotation formula: v' = v + 2 * cross(q.xyz, cross(q.xyz, v) + q.w * v)
+  vec3 qvec = q.xyz;
+  float qw = q.w;
+  vec3 cross1 = cross(qvec, rotatedPos);
+  vec3 cross2 = cross(qvec, cross1 + qw * rotatedPos);
+  rotatedPos = rotatedPos + 2.0 * cross2;
   
   finalPosition.xyz = rotatedPos;
   

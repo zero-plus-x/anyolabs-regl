@@ -134,55 +134,44 @@ const regl = createREGL({
                 : (2 - Math.pow(2, -20 * t + 10)) / 2;
               return easeInOutExpo;
             })(),
-            // Parallel rotation animation with varying speeds for each axis
-            rotationX: (() => {
-              // Get current morph amount for speed modulation
-              const t = (Math.sin(time * 0.4) * 0.5 + 0.5);
-              const morphAmount = t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
-              
-              // Calculate speed modifier based on morph state (slower at 0, 0.5, 1)
-              const morphSpeedFactor = 1 - Math.pow(Math.sin(morphAmount * Math.PI), 2) * 0.7; // Slow down at extremes and middle
-              
-              // Base fluctuating speed
-              const baseSpeed = (Math.sin(time * 0.15) * 0.5 + 0.5) * 1.5 + 0.3; // Speed varies between 0.3 and 1.8
-              
-              // Apply morph-based speed modulation
-              const finalSpeed = baseSpeed * morphSpeedFactor;
-              
-              // Accumulate rotation over time instead of multiplying by time directly
-              return time * finalSpeed;
-            })(),
-            rotationY: (() => {
+            // Parallel rotation animation using quaternions to avoid gimbal lock
+            rotationQuaternion: (() => {
               // Get current morph amount for speed modulation
               const t = (Math.sin(time * 0.4) * 0.5 + 0.5);
               const morphAmount = t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
               
               // Calculate speed modifier based on morph state
-              const morphSpeedFactor = 1 - Math.pow(Math.sin(morphAmount * Math.PI), 2) * 0.6;
+              const morphSpeedFactor = 1 - Math.pow(Math.sin(morphAmount * Math.PI), 2) * 0.7;
               
-              // Base fluctuating speed
-              const baseSpeed = (Math.sin(time * 0.23) * 0.5 + 0.5) * 1.2 + 0.4; // Speed varies between 0.4 and 1.6
+              // Create three independent rotation axes with varying speeds
+              const speedX = ((Math.sin(time * 0.15) * 0.5 + 0.5) * 1.5 + 0.3) * morphSpeedFactor;
+              const speedY = ((Math.sin(time * 0.23) * 0.5 + 0.5) * 1.2 + 0.4) * morphSpeedFactor;
+              const speedZ = ((Math.sin(time * 0.31) * 0.5 + 0.5) * 1.0 + 0.2) * morphSpeedFactor;
               
-              // Apply morph-based speed modulation
-              const finalSpeed = baseSpeed * morphSpeedFactor;
+              // Calculate rotation angles for each axis
+              const angleX = time * speedX;
+              const angleY = time * speedY;
+              const angleZ = time * speedZ;
               
-              return time * finalSpeed;
-            })(),
-            rotationZ: (() => {
-              // Get current morph amount for speed modulation
-              const t = (Math.sin(time * 0.4) * 0.5 + 0.5);
-              const morphAmount = t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, 20 * t - 10) / 2 : (2 - Math.pow(2, -20 * t + 10)) / 2;
+              // Convert to quaternions and combine
+              const halfX = angleX * 0.5;
+              const halfY = angleY * 0.5;
+              const halfZ = angleZ * 0.5;
               
-              // Calculate speed modifier based on morph state
-              const morphSpeedFactor = 1 - Math.pow(Math.sin(morphAmount * Math.PI), 2) * 0.8;
+              const cosX = Math.cos(halfX);
+              const sinX = Math.sin(halfX);
+              const cosY = Math.cos(halfY);
+              const sinY = Math.sin(halfY);
+              const cosZ = Math.cos(halfZ);
+              const sinZ = Math.sin(halfZ);
               
-              // Base fluctuating speed
-              const baseSpeed = (Math.sin(time * 0.31) * 0.5 + 0.5) * 1.0 + 0.2; // Speed varies between 0.2 and 1.2
+              // Combine quaternions: qZ * qY * qX
+              const qw = cosX * cosY * cosZ + sinX * sinY * sinZ;
+              const qx = sinX * cosY * cosZ - cosX * sinY * sinZ;
+              const qy = cosX * sinY * cosZ + sinX * cosY * sinZ;
+              const qz = cosX * cosY * sinZ - sinX * sinY * cosZ;
               
-              // Apply morph-based speed modulation
-              const finalSpeed = baseSpeed * morphSpeedFactor;
-              
-              return time * finalSpeed;
+              return [qx, qy, qz, qw];
             })(),
           })
         },
