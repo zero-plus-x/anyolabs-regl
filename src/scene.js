@@ -150,8 +150,8 @@ const regl = createREGL({
               // Use a sine wave that creates this pattern
               const rotationMultiplier = Math.abs(Math.sin(easeInOutExpo * Math.PI * 2.5));
               
-              // Oscillating rotation using sine function
-              const baseRotation = Math.sin(time * 0.4) * 0.5; // Oscillates between -0.5 and 0.5
+              // Oscillating rotation using sine function (always positive)
+              const baseRotation = Math.abs(Math.sin(time * 0.4)) * 0.5; // Oscillates between 0 and 0.5
               
               return baseRotation * rotationMultiplier;
             })(),
