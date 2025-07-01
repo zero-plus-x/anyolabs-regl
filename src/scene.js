@@ -141,16 +141,16 @@ const regl = createREGL({
                   // console.log(easeInOutExpo)
                 return easeInOutExpo;
               } else {
-                // Cube to sphere: use easeOutInExpo (inverted easeInOutExpo)
-                const easeOutInExpo = t === 0 
+                // Cube to sphere: apply easeInOutExpo to the inverted t value
+                const invertedT = 1 - t;
+                const easeInOutExpo = invertedT === 0 
                   ? 0 
-                  : t === 1 
+                  : invertedT === 1 
                   ? 1 
-                  : t < 0.5 
-                  ? (2 - Math.pow(2, -20 * t + 10)) / 2
-                  : Math.pow(2, 20 * t - 10) / 2;
-                  console.log(easeOutInExpo)
-                return easeOutInExpo;
+                  : invertedT < 0.5 
+                  ? Math.pow(2, 20 * invertedT - 10) / 2
+                  : (2 - Math.pow(2, -20 * invertedT + 10)) / 2;
+                return 1 - easeInOutExpo;
               }
             })(),
           })
