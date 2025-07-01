@@ -10,7 +10,6 @@ uniform float uAmount;
 
 uniform float uTaperFactor;
 uniform float morphAmount;
-uniform vec4 rotationQuaternion;
 
 uniform float pointSizeMin;
 uniform float pointSizeMax;
@@ -184,19 +183,6 @@ void main() {
   vec4 finalPosition = position;
   // finalPosition += finalNoiseConstant;
   finalPosition.z += amount * (brownian1 * 0.15 - 0.15);
-  
-  // Apply quaternion rotation to avoid gimbal lock
-  vec4 q = rotationQuaternion;
-  vec3 rotatedPos = finalPosition.xyz;
-  
-  // Quaternion rotation formula: v' = v + 2 * cross(q.xyz, cross(q.xyz, v) + q.w * v)
-  vec3 qvec = q.xyz;
-  float qw = q.w;
-  vec3 cross1 = cross(qvec, rotatedPos);
-  vec3 cross2 = cross(qvec, cross1 + qw * rotatedPos);
-  rotatedPos = rotatedPos + 2.0 * cross2;
-  
-  finalPosition.xyz = rotatedPos;
   
   mat4 modelViewMatrix = modelMatrix * viewMatrix;
   position = projectionMatrix * modelViewMatrix * finalPosition;
