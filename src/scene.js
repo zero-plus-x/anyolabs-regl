@@ -148,10 +148,10 @@ const regl = createREGL({
               // Calculate rotation speed multiplier based on morph amount
               // Peak at 0 and 1, zero at 0.2, 0.5, 0.8
               const morphFactor = Math.abs(Math.sin(easeInOutExpo * Math.PI * 2.5));
-              
+              console.log(morphFactor)
               // Calculate speed using sine offset formula
-              const baseSpeed = 0.1;
-              const minSpeed = 0.05;
+              const baseSpeed = 0.2;
+              const minSpeed = 0.1;
               const maxSpeed = 0.3;
               const speed = baseSpeed * ((Math.sin(time * 0.4) + 1) / 2) * (maxSpeed - minSpeed) + minSpeed;
               
