@@ -138,7 +138,7 @@ const regl = createREGL({
                   : t < 0.5 
                   ? Math.pow(2, 20 * t - 10) / 2
                   : (2 - Math.pow(2, -20 * t + 10)) / 2;
-                  // console.log(easeInOutExpo)
+                  console.log(easeInOutExpo)
                 return easeInOutExpo;
               } else {
                 // Cube to sphere: apply easeInOutExpo to the inverted t value
@@ -150,6 +150,7 @@ const regl = createREGL({
                   : invertedT < 0.5 
                   ? Math.pow(2, 20 * invertedT - 10) / 2
                   : (2 - Math.pow(2, -20 * invertedT + 10)) / 2;
+                  console.log(1 - easeInOutExpo)
                 return 1 - easeInOutExpo;
               }
             })(),
